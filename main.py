@@ -69,4 +69,4 @@ def index():
 app.layout = index()
 
 if __name__ == '__main__':
-    app.run_server(host='localhost', port=8050, debug=True)
+    app.run_server(host='localhost', port=8050, debug=False)
