@@ -225,5 +225,7 @@ def main(**kwargs):
 
 
 if __name__ == '__main__':
-    argv = argv[1:]
-    kwargs = {kw[0]: kw[1] for kw in [ar.split('=') for ar in argv if ar.find('=') > 0]}
+    generator = Generator()
+    res = generator.run()
+    generator.export_to_json("test.json", res)
+    # generator.import_from_json('test.json')
