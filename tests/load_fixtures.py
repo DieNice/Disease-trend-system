@@ -1,17 +1,19 @@
-import base64
-import hashlib
 import json
 import os
 import random
-import sys
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Tuple
 
-# from disease_trend_system.endpoints import SymtomComplexTransform
+from disease_trend_system.config import (hostname_db, name_db, password_db,
+                                         port, username_db)
+from disease_trend_system.endpoints import SymptomsDAO, SymtomComplexTransform
 
 SECONDS = 24 * 60 * 60  # seconds in one day
 
 
 class Generator:
+    """Generator test data
+    """
 
     def __init__(self, FILE='symptoms', MIN_RANGE=2, MAX_RANGE=5, FREQUENCY=3, OUTCAST=10, MIN_OBSERVED=20,
                  MAX_OBSERVED=100, DAY_NIGHT_RATIO=3, DAY_RANGE=3):
@@ -27,11 +29,22 @@ class Generator:
         self.day_range = DAY_RANGE  #
 
     def _cur_dir(self) -> str:
+        """current directory
+
+        Returns:
+            str: path to current directory
+        """
         return os.path.dirname(os.path.abspath(__file__))
 
-    # loads list of symptoms separated into groups for different illnesses
+    def _load_lines(self, file: Any) -> Tuple[int, List]:
+        """loads list of symptoms separated into groups for different illnesses
 
-    def load_lines(self, file):
+        Args:
+            file (Any): path to file, maybe file
+
+        Returns:
+            Tuple[int, Dict]: len, data
+        """
         file = open(file, encoding='UTF-8')
         illness_symptoms = []
         subset = {}
@@ -56,8 +69,17 @@ class Generator:
         illness_symptoms.append(subset.copy())
         return len(illness_symptoms), illness_symptoms
 
-    # generates random period in range in range from start date to end
-    def random_period(self, start=datetime(2022, 1, 1), stop=datetime.now()):
+    def _random_period(self, start: datetime = datetime(2023, 1, 1),
+                       stop: datetime = datetime.now()) -> Tuple[datetime, datetime, int]:
+        """generates random period in range in range from start date to end
+
+        Args:
+            start (datetime, optional): Defaults to datetime(2022, 1, 1).
+            stop (datetime, optional):  Defaults to datetime.now().
+
+        Returns:
+            Tuple[datetime, datetime, int]: random period
+        """
         delta = stop - start
         int_delta = (delta.days * SECONDS) + delta.seconds
         random_second = random.randrange(int_delta)
@@ -69,7 +91,15 @@ class Generator:
         delta = end - begin
         return begin, end, delta.days
 
-    def random_date(self, start=datetime(2022, 1, 1)):
+    def _random_date(self, start: datetime = datetime(2023, 1, 1)) -> datetime:
+        """get ramndom date
+
+        Args:
+            start (datetime, optional): Defaults to datetime(2022, 1, 1).
+
+        Returns:
+            datetime: random date
+        """
         stop = datetime.now()
         delta = stop - start
         int_delta = (delta.days * SECONDS) + delta.seconds
@@ -77,16 +107,31 @@ class Generator:
         begin = start + timedelta(seconds=random_second)
         return begin
 
-    # generate random data in range from received date to date plus fixed frequency
-    def inc_random_date(self, start=datetime(2022, 1, 1)):
+    def _inc_random_date(self, start: datetime = datetime(2023, 1, 1)) -> datetime:
+        """generate random data in range from received date to date plus fixed frequency
+
+        Args:
+            start (datetime, optional): Defaults to datetime(2022, 1, 1).
+
+        Returns:
+            datetime: random data
+        """
         delta = timedelta(self.frequency)
         int_delta = (delta.days * SECONDS) + delta.seconds
         random.seed(datetime.now())
         random_second = random.randrange(int_delta)
         return start + timedelta(seconds=random_second)
 
-    # gives elements missing in second set
-    def free_values(self, data, cur_set):
+    def _free_values(self, data: Dict[str, Any], cur_set: Dict[str, Any]) -> Dict[Any, str]:
+        """gives elements missing in second set
+
+        Args:
+            data (Dict[str, Any]): first elements collection
+            cur_set (Dict[str, Any]): second element collection
+
+        Returns:
+            Dict[Any, str]: First collection without second collection
+        """
         new_set = {}
         keys = list(data.keys())
         for i in range(len(data)):
@@ -94,69 +139,66 @@ class Generator:
                 new_set[keys[i]] = data.get(keys[i])
         return new_set
 
-    # gives random element key from set
-    def random_key(self, data):
+    def _random_key(self, data: Dict[str, Any]) -> Any:
+        """gives random element key from set
+
+        Args:
+            data (Dict[str, Any]): Symtpomcomplex collection
+
+        Returns:
+            Any: random elem
+        """
         keys = list(data.keys())
         index = random.randrange(len(data))
         return keys.pop(index)
 
-    # generates detected symptom complex
-    def make_extra(self, all_values, prev, quantity):
+    def _make_extra(self, all_values: Dict[str, Any], prev: Dict[str, Any], quantity: int) -> Dict[str, Any]:
+        """generates detected symptom complex
+
+        Args:
+            all_values (Dict[str, Any]): symptom collection
+            prev (Dict[str,Any]): ...
+            quantity (int): ...
+
+        Returns:
+            Dict[str,Any]: random symptom complex
+        """
         random.seed(datetime.now())
         if len(prev) == quantity:
-            prev.pop(self.random_key(prev))
+            prev.pop(self._random_key(prev))
         if len(prev) > quantity:
-            for i in range(len(prev) - quantity):
-                prev.pop(self.random_key(prev))
+            for _ in range(len(prev) - quantity):
+                prev.pop(self._random_key(prev))
         else:
-            free = self.free_values(all_values, prev)
+            free = self._free_values(all_values, prev)
             unused = list(free.keys())
-            for i in range(quantity - len(prev)):
+            if not unused:
+                return prev
+            for _ in range(quantity - len(prev)):
                 index = random.randrange(len(unused))
                 prev[unused[index]] = free.get(unused[index])
                 unused.pop(index)
         return prev
 
-    def make_hash_sha1(self, data):
-        hasher = hashlib.sha1()
-        hasher.update(repr(self.make_hashable(data)).encode())
-        return base64.b64encode(hasher.digest()).decode()
+    def _gen_noice(self, data: Dict[str, Any], group_data: List, percent: float) -> List:
+        """generates trash data with mix of symptoms
 
-    def make_hashable(self, data):
-        if isinstance(data, (tuple, list)):
-            return tuple((self.make_hashable(item) for item in data))
+        Args:
+            data (Dict[str, Any]): data
+            group_data (List): group data
+            percent (float): percent
 
-        if isinstance(data, dict):
-            return tuple(sorted((k, self.make_hashable(v)) for k, v in data.items()))
-
-        if isinstance(data, (set, frozenset)):
-            return tuple(sorted(self.make_hashable(item) for item in data))
-
-        return data
-
-    # hashing symptoms (extra)
-    def get_extra_hashed(self, data):
-        res = {}
-        for key in data:
-            value = data.get(key)
-            res[key] = self.make_hash_sha1(value)
-        return res
-
-    # hashing symptom complex (extra)
-    def get_complex_hashed(self, data):
-        return self.make_hash_sha1(data)
-
-    # generates trash data with mix of symptoms
-    def gen_noice(self, data, group_data, percent):
+        Returns:
+            List: _description_
+        """
         observes = len(group_data) // 100 * percent // len(data)
         random.seed(datetime.now())
         for group in data:
             people = random.randrange(self.min_observed, self.max_observed)
             extra = {}
-            print()
-            for i in range(observes):
+            for _ in range(observes):
                 people = random.randrange(self.min_observed, self.max_observed)
-                start = self.random_date()
+                start = self._random_date()
                 # different quantity of observed in day/night time
                 observed = people // self.ratio if start.hour < 12 else people
                 # minimum quantity of symptoms
@@ -165,38 +207,56 @@ class Generator:
                 # quantity of features
                 features = random.randrange(
                     min(MIN, self.min_range), max(len(group), self.max_range))
-                extra = self.make_extra(group, extra, features)
-                extra_hashed = self.get_extra_hashed(extra)
-                complex_hashed = self.get_complex_hashed(extra)
+                extra = self._make_extra(group, extra, features)
+
                 percent = random.randrange(20, 100)
-                inf = {"people": observed, "date": start.isoformat(), "percent": percent,
-                       "extra": json.dumps(extra, ensure_ascii=False), "extra_hashed": extra_hashed,
-                       "complex_hashed": complex_hashed}
+                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,
+                       "symptoms": extra}
                 group_data.append(inf)
         return group_data
 
-    def generate_dataset(self, count, data, noice=False, percent=10):
-        res = self.gen_groups(count, data)
+    def _generate_dataset(self, count: int, data: List, noice: bool = False, percent: float = 10) -> List[Dict[str, Any]]:
+        """generate dataset
+
+        Args:
+            count (int): count of symptimcomplexes
+            data (List): source data for generation
+            noice (bool, optional): Noise. Defaults to False.
+            percent (float, optional): Percent of people for symptomcomplex. Defaults to 10.
+
+        Returns:
+            List[Dict[str, Any]]: data for saving
+        """
+        res = self._gen_groups(count, data)
         return res
 
-    # generates groups (trends for illnesses)
-    def gen_groups(self, count, data):
+    def _gen_groups(self, count: int, data: List) -> List[Dict[str, Any]]:
+        """generates groups (trends for illnesses)
+
+        Args:
+            count (int): count of symptomcomplexes
+            data (List): source data
+
+        Returns:
+            List[Dict[str,Any]]: dest
+        """
+
         result = []
         random.seed(datetime.now())
         for group in data:
-            start, end, days = self.random_period()
+            start, _, days = self._random_period()
             try:
                 observes = random.randrange(days // self.day_range)
             except BaseException as _:
                 pass
             people = random.randrange(self.min_observed, self.max_observed)
-            extra = {}
-            
-            for i in range(observes):
+            extra: Dict[str, Any] = {}
+
+            for _ in range(observes):
                 variety = people // (self.outcast * 2)
                 # choose sign for people observed quantity change
                 sign = -1 if random.randrange(variety) < variety // 2 else 1
-                start = self.inc_random_date(start)
+                start = self._inc_random_date(start)
                 people = people + sign * variety
 
                 # different quantity of observed in day/night time
@@ -209,36 +269,60 @@ class Generator:
                 # quantity of features
                 features = random.randrange(
                     min(MIN, self.min_range), max(len(group), self.max_range))
-                extra = self.make_extra(group, extra, features)
+                extra = self._make_extra(group, extra, features)
                 # extra_hashed = self.get_extra_hashed(extra)
                 # complex_hashed = self.get_complex_hashed(extra)
                 percent = random.randrange(20, 100)
-                inf = {"total_number": observed, "date": start.isoformat(), "percent_people": percent,
-                       "symptoms": json.dumps(extra)}
+                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,
+                       "symptoms": extra}
                 result.append(inf)
         return result
 
-    def run(self):
-        count, data = self.load_lines(f"{self._cur_dir()}/{self.file}")
-        result = self.generate_dataset(count, data, True)
-        result = self.gen_noice(data, result, 10)
-        print(result)
+    def run(self) -> List[Dict[str, Any]]:
+        """data generation
+
+        Returns:
+            List[Dict[str, Any]]: list of data generation
+        """
+        count, data = self._load_lines(f"{self._cur_dir()}/{self.file}")
+        result = self._generate_dataset(count, data, True)
+        result = self._gen_noice(data, result, 10)
         return result
 
-    def export_to_json(self, filename, data):
+    def export_to_json(self, filename: str, data: List) -> None:
+        """export to json file
+
+        Args:
+            filename (str): filename
+            data (List): list of dicts
+        """
         with open(filename, 'w', encoding='utf-8') as fp:
             json.dump(data, fp, indent=4, ensure_ascii=False)
 
-    def import_from_json(self, filename):
+    def import_from_json(self, filename: str) -> List:
+        """import from json
+
+        Args:
+            filename (str): filename
+
+        Returns:
+            List: list of dicts
+        """
         with open(filename, 'r', encoding='utf-8') as fp:
             file = json.loads(fp)
             data = json.dumps(file, sort_keys=False,
                               indent=4, separators=(',', ': '))
-            print(data)
         return data
 
 
 if __name__ == '__main__':
     generator = Generator()
-    res = generator.run()
-    generator.export_to_json("test.json", res)
+    symptom_complexes = generator.run()
+    generator.export_to_json("test.json", symptom_complexes)
+
+    for symptom_complex in symptom_complexes:
+        symptoms = SymtomComplexTransform.symptom_complex_to_symptoms(
+            symptom_complex)
+        symptom_dao = SymptomsDAO(
+            username_db, password_db, hostname_db, port, name_db)
+        symptom_dao.save_symptoms(symptoms)

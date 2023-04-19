@@ -12,6 +12,7 @@ from sqlalchemy.sql import text
 
 from disease_trend_system.config import (hostname_db, name_db, password_db,
                                          port, username_db)
+from sqlalchemy.exc import IntegrityError
 
 
 @dataclass
@@ -82,7 +83,7 @@ class SymptomsDAO:
     def _symptoms_to_dict(symptoms: List[SymptomDTO]) -> Generator:
         """Список DTO в список словарей
 
-        Args:
+        Args:symptom_complexe
             symptoms (List[SymptomDTO]): Список симптомов
 
         Returns:
@@ -154,9 +155,9 @@ class SymptomsDAO:
                 values
                    {values};'''
         queries['query_6'] = f'''insert
-                    into
-                    symptom_complexes_hash_temp (symptom_complex_hash)
-                with cte as (
+                into
+                symptom_complexes_hash_temp (symptom_complex_hash)
+                            with cte as (
                 select
                     sc.*,
                     sct.total_number as '_total_number',
@@ -183,10 +184,10 @@ class SymptomsDAO:
                         cte) mt
                 where
                     mt.concurrency BETWEEN {min_con} and {max_con})
-                select
-                    symptom_complex_hash
-                from
-                    cte_2;'''
+                            select
+                symptom_complex_hash
+            from
+                cte_2;'''
         queries['query_7'] = '''insert
                     into
                     symptom_complexes(total_number,
@@ -222,8 +223,24 @@ class SymptomsDAO:
         queries['query_11'] = "drop table if exists symptom_complexes_temp;"
         queries['query_12'] = "drop table if exists symptom_complexes_hash_temp;"
 
-        with self.engine.connect() as conn:
-            for _, query in queries.items():
+        try:
+            with self.engine.connect() as conn:
+                for _, query in queries.items():
+                    conn.execute(text(query))
+                    conn.commit()
+        except IntegrityError as _:
+            with self.engine.connect() as conn:
+                query = f'''insert
+                    into
+                    symptom_complexes (total_number,
+                    date,
+                    percent_people,
+                    extra,
+                    symptom_hash,
+                    symptom_complex_hash
+                    )
+                values
+                   {values};'''
                 conn.execute(text(query))
                 conn.commit()
 
