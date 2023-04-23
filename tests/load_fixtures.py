@@ -318,7 +318,6 @@ class Generator:
 if __name__ == '__main__':
     generator = Generator()
     symptom_complexes = generator.run()
-    generator.export_to_json("test.json", symptom_complexes)
 
     for symptom_complex in symptom_complexes:
         symptoms = SymtomComplexTransform.symptom_complex_to_symptoms(
