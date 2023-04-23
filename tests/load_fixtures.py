@@ -286,7 +286,7 @@ class Generator:
         """
         count, data = self._load_lines(f"{self._cur_dir()}/{self.file}")
         result = self._generate_dataset(count, data, True)
-        result = self._gen_noice(data, result, 10)
+        # result = self._gen_noice(data, result, 10)
         return result
 
     def export_to_json(self, filename: str, data: List) -> None:

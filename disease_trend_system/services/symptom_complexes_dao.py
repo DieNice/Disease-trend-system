@@ -1,18 +1,14 @@
-import hashlib
-import json
-from dataclasses import asdict, astuple, dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, Generator, List
+from typing import Any, Generator, List
 
 import sqlalchemy
-from flask import request
-from flask_restful import Resource, inputs, reqparse
 from sqlalchemy import MetaData
 from sqlalchemy.sql import text
 
-from disease_trend_system.config import (hostname_db, name_db, password_db,
-                                         port, username_db)
 from sqlalchemy.exc import IntegrityError
+from pandas import DataFrame
+import pandas as pd
 
 
 @dataclass
@@ -224,3 +220,47 @@ class SymptomsDAO:
             self._insert(symptoms)
         else:
             self._insert_with_concurrency(symptoms)
+
+    def get_trends_data(self, start_date: datetime, end_date: datetime) -> DataFrame:
+        """Получить график трендов
+
+        Args:
+            start_date (datetime): Начала диапазона
+            end_date (datetime): Конец диапазона
+
+        Returns:
+            DataFrame: Датафрейм с данными
+        """
+        special_replace = '"},{"'
+        query_text = f'''with filtered_dates as (
+                select
+                    sc.id ,
+                    sc.total_number,
+                    sc.percent_people,
+                    sc.extra,
+                    sc.symptom_hash,
+                    sc.symptom_complex_hash,	
+                    date_format(sc.`date`, "%Y-%m-%d") as `date`
+                from
+                    symptom_complexes sc
+                where
+                    (date_format(sc.`date`, "%Y-%m-%d") BETWEEN date('{start_date}') and date('{end_date}')))
+                select
+                    sc.symptom_complex_hash,
+                    sc.date,
+                    avg(sc.percent_people) as percent_people,
+                    count(sc.total_number) as num_symp,
+                    avg(sc.total_number) as total_number,
+                    replace(GROUP_CONCAT(sc.extra), {special_replace}, ",") as extra
+                from
+                    filtered_dates sc
+                group by
+                    sc.`date`,
+                    sc.symptom_complex_hash
+                order by
+                    `date`
+        '''
+        with self.engine.connect() as conn:
+            df = pd.read_sql(text(query_text),conn)
+
+        return df

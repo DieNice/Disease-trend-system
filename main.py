@@ -7,6 +7,7 @@ from dash_extensions.enrich import Input, Output, html
 
 from disease_trend_system.app import app
 from disease_trend_system.app import srv as server
+from disease_trend_system.callbacks.trends_callbacks import update_line_chart
 from disease_trend_system.layouts.navbar import Navbar
 from disease_trend_system.layouts.trends_layout import trends_layout
 
@@ -70,4 +71,4 @@ def index():
 app.layout = index()
 
 if __name__ == '__main__':
-    app.run_server(host='localhost', port=8050, debug=True)
+    app.run_server(host='localhost', port=8050, debug=False)

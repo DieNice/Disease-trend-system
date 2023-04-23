@@ -4,6 +4,7 @@ from dash import html, dcc
 from datetime import date, datetime
 import plotly.graph_objs as go
 
+
 def get_start_date() -> datetime:
     """Получить дату на начало месяца
 
@@ -23,7 +24,9 @@ def get_end_date() -> datetime:
     """
     return datetime.now()
 
+
 fig = go.Figure(data=[go.Scatter(x=[1, 2, 3], y=[4, 1, 2])])
+
 
 def trends_layout():
     return dbc.Container([
@@ -36,12 +39,12 @@ def trends_layout():
                      dcc.DatePickerRange(id="date-range-1",
                     min_date_allowed=date(2000, 8, 5),
                     start_date=get_start_date(),
-                    end_date=get_end_date(  ))]),
+                    end_date=get_end_date())]),
             dbc.Col(),
             dbc.Col()
         ]),
         dbc.Row(html.Br()),
-        dbc.Row(dcc.Graph(figure=fig)),
+        dbc.Row(dcc.Graph(id="graph-1", figure=fig)),
         dbc.Row(dbc.Button("Построить тренд", color="primary",
-                className="me-1 col-6"), className="justify-content-md-center"),
+                className="me-1 col-6", id="btn-1"), className="justify-content-md-center"),
     ])
