@@ -16,7 +16,7 @@ class Generator:
     """
 
     def __init__(self, FILE='symptoms', MIN_RANGE=2, MAX_RANGE=5, FREQUENCY=3, OUTCAST=10, MIN_OBSERVED=20,
-                 MAX_OBSERVED=100, DAY_NIGHT_RATIO=3, DAY_RANGE=3):
+                 MAX_OBSERVED=100, DAY_NIGHT_RATIO=3, DAY_RANGE=3, PERCENT_LOW = 20, PERCENT_HIGH = 90, VARIATION = 5):
         self.file = FILE
         self.min_range = MIN_RANGE  # Min symptoms for observe
         self.max_range = MAX_RANGE  # Max symptoms for observe
@@ -24,9 +24,12 @@ class Generator:
         self.outcast = OUTCAST  # max percent change in number of observed
         self.min_observed = MIN_OBSERVED  # min percent with approved
         self.max_observed = MAX_OBSERVED  # max percent with approved
-        # difference between quantity of observed at day/night time
+        # difference between quantity of observed at day/night_time
         self.ratio = DAY_NIGHT_RATIO
         self.day_range = DAY_RANGE  #
+        self.percent_low = PERCENT_LOW # low edge for disease approve
+        self.percent_high = PERCENT_HIGH # high edge for disease approve
+        self.variation = VARIATION # difference between previous and next
 
     def _cur_dir(self) -> str:
         """current directory
@@ -195,11 +198,12 @@ class Generator:
         random.seed(datetime.now())
         for group in data:
             people = random.randrange(self.min_observed, self.max_observed)
+            percent = random.randrange(self.percent_low, self.percent_high)
             extra = {}
             for _ in range(observes):
                 people = random.randrange(self.min_observed, self.max_observed)
                 start = self._random_date()
-                # different quantity of observed in day/night time
+                # different quantity of observed in day/night_time
                 observed = people // self.ratio if start.hour < 12 else people
                 # minimum quantity of symptoms
                 MIN = self.min_range if self.max_range >= len(
@@ -209,11 +213,27 @@ class Generator:
                     min(MIN, self.min_range), max(len(group), self.max_range))
                 extra = self._make_extra(group, extra, features)
 
-                percent = random.randrange(20, 100)
+                percent = self._make_percent(percent)
                 inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,
                        "symptoms": extra}
                 group_data.append(inf)
         return group_data
+
+    def _make_percent(self, value: int) -> int:
+        if value < 30:  # to show some situations when trend appears
+            decision = True if random.randrange(self.percent_high) < self.percent_high // 2 else False
+            if decision:
+                return value * 2
+        sign = -1 if random.randrange(self.variation) < self.variation // 2 else 1
+        alternative = value + sign * random.randrange(self.variation)
+        if not alternative > 100 and not alternative < 0:
+            return alternative
+        else:
+            if alternative > 100:
+                return value - random.randrange(self.variation)
+            else:
+                return value + random.randrange(self.variation)
+
 
     def _generate_dataset(self, count: int, data: List, noice: bool = False, percent: float = 10) -> List[Dict[str, Any]]:
         """generate dataset
