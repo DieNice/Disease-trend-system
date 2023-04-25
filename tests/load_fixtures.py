@@ -16,7 +16,7 @@ class Generator:
     """
 
     def __init__(self, FILE='symptoms', MIN_RANGE=2, MAX_RANGE=5, FREQUENCY=3, OUTCAST=10, MIN_OBSERVED=20,
-                 MAX_OBSERVED=100, DAY_NIGHT_RATIO=3, DAY_RANGE=3, PERCENT_LOW = 20, PERCENT_HIGH = 90, VARIATION = 5):
+                 MAX_OBSERVED=100, DAY_NIGHT_RATIO=3, DAY_RANGE=3, PERCENT_LOW = 20, PERCENT_HIGH = 90, VARIATION = 5, TREND_MIN = 3, TREND_MAX = 20):
         self.file = FILE
         self.min_range = MIN_RANGE  # Min symptoms for observe
         self.max_range = MAX_RANGE  # Max symptoms for observe
@@ -30,6 +30,8 @@ class Generator:
         self.percent_low = PERCENT_LOW # low edge for disease approve
         self.percent_high = PERCENT_HIGH # high edge for disease approve
         self.variation = VARIATION # difference between previous and next
+        self.trend_min = TREND_MIN # minimal trend occurance duration
+        self.trend_max = TREND_MAX # maximum trend occurance duration
 
     def _cur_dir(self) -> str:
         """current directory
@@ -270,6 +272,7 @@ class Generator:
             except BaseException as _:
                 pass
             people = random.randrange(self.min_observed, self.max_observed)
+            percent = random.randrange(self.percent_low, self.percent_high)
             extra: Dict[str, Any] = {}
 
             for _ in range(observes):
@@ -292,7 +295,7 @@ class Generator:
                 extra = self._make_extra(group, extra, features)
                 # extra_hashed = self.get_extra_hashed(extra)
                 # complex_hashed = self.get_complex_hashed(extra)
-                percent = random.randrange(20, 100)
+                percent = self._make_percent(percent)
                 inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,
                        "symptoms": extra}
                 result.append(inf)
