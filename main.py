@@ -10,11 +10,14 @@ from disease_trend_system.app import srv as server
 from disease_trend_system.callbacks.trends_callbacks import update_line_chart
 from disease_trend_system.layouts.navbar import Navbar
 from disease_trend_system.layouts.trends_layout import trends_layout
+from disease_trend_system.services import authentication as au
 
 app_name = os.getenv("DASH_APP_PATH", "/disease_trend_system")
 
 nav = Navbar()
 
+
+auth = au.Authorizer().add_authorization(app)
 
 header = html.Div(
     children=[
