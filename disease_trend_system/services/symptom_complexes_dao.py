@@ -1,14 +1,14 @@
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from functools import cache
 from typing import Any, Generator, List
 
-import sqlalchemy
-from sqlalchemy import MetaData
-from sqlalchemy.sql import text
-
-from sqlalchemy.exc import IntegrityError
-from pandas import DataFrame
 import pandas as pd
+import sqlalchemy
+from pandas import DataFrame
+from sqlalchemy import MetaData
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import text
 
 
 @dataclass
@@ -221,6 +221,7 @@ class SymptomsDAO:
         else:
             self._insert_with_concurrency(symptoms)
 
+    @cache
     def get_trends_data(self, start_date: datetime, end_date: datetime) -> DataFrame:
         """Получить график трендов
 
@@ -251,7 +252,7 @@ class SymptomsDAO:
                     avg(sc.percent_people) as percent_people,
                     count(sc.total_number) as num_symp,
                     avg(sc.total_number) as total_number,
-                    replace(GROUP_CONCAT(sc.extra), {special_replace}, ",") as extra
+                    replace(GROUP_CONCAT(distinct(sc.extra)), {special_replace}, ",") as extra
                 from
                     filtered_dates sc
                 group by
@@ -261,6 +262,6 @@ class SymptomsDAO:
                     `date`
         '''
         with self.engine.connect() as conn:
-            df = pd.read_sql(text(query_text),conn)
+            df = pd.read_sql(text(query_text), conn)
 
         return df
