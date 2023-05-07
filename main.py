@@ -9,8 +9,11 @@ from disease_trend_system.app import app
 from disease_trend_system.app import srv as server
 from disease_trend_system.callbacks.trends_callbacks import (display_hover,
                                                              update_line_chart)
+
+from disease_trend_system.callbacks.trends_callbacks_detail import update_table
 from disease_trend_system.layouts.navbar import Navbar
 from disease_trend_system.layouts.trends_layout import trends_layout
+from disease_trend_system.layouts.trends_layout_detail import trends_layout_detail
 from disease_trend_system.services import authentication as au
 
 app_name = os.getenv("DASH_APP_PATH", "/disease_trend_system")
@@ -60,7 +63,7 @@ def display_page(pathname: str) -> Any:
     elif pathname.endswith("/trends"):
         return trends_layout()
     elif pathname.endswith("/symptoms"):
-        return ""
+        return trends_layout_detail()
     elif pathname.endswith("/rating"):
         return ""
     else:
@@ -74,4 +77,4 @@ def index():
 app.layout = index()
 
 if __name__ == '__main__':
-    app.run_server(host='localhost', port=8050, debug=False)
+    app.run_server(host='localhost', port=8050, debug=True)
