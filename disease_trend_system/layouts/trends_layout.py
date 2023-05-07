@@ -1,8 +1,9 @@
 
-import dash_bootstrap_components as dbc
-from dash import html, dcc
 from datetime import date, datetime
+
+import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
+from dash import dcc, html
 
 
 def get_start_date() -> datetime:
@@ -25,26 +26,37 @@ def get_end_date() -> datetime:
     return datetime.now()
 
 
-fig = go.Figure(data=[go.Scatter(x=[1, 2, 3], y=[4, 1, 2])])
+fig = go.Figure(data=[])
 
 
 def trends_layout():
     return dbc.Container([
+        dbc.Row(html.Br()),
         dbc.Row([
             dbc.Col([html.P("Введите количество дней для формирования тренда"),
-                dbc.Input("id_doorstep_input", type="number", min=3,
+                dbc.Input("id_threshold_input", type="number", min=1,
                           className="mb-10", size="sm",
+                          pattern='\d*',
+                          value=1,
                           placeholder="Порог тренда")]),
             dbc.Col([html.P("Выберите диапазон"),
                      dcc.DatePickerRange(id="date-range-1",
-                    min_date_allowed=date(2000, 8, 5),
                     start_date=get_start_date(),
                     end_date=get_end_date())]),
-            dbc.Col(),
+            dbc.Col(dbc.Button("Обновить тренд", color="primary",
+                className="me-1", id="btn-1")),
             dbc.Col()
         ]),
         dbc.Row(html.Br()),
-        dbc.Row(dcc.Graph(id="graph-1", figure=fig)),
-        dbc.Row(dbc.Button("Построить тренд", color="primary",
-                className="me-1 col-6", id="btn-1"), className="justify-content-md-center"),
+
+        dbc.Row([dcc.Graph(id="graph-1", figure=fig,
+                style={"width": "100vw", "height": "80vh"},
+                clear_on_unhover=True),
+            dcc.Tooltip(id="graph-tooltip")]),
+        dbc.Row(className="justify-content-md-center"),
+        dbc.Row(html.Br()),
+        dbc.Row(html.Br()),
+        dbc.Row(html.Br()),
+        dbc.Row(html.Br()),
+        dbc.Row(html.Br()),
     ])
