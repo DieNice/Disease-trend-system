@@ -7,7 +7,8 @@ from dash_extensions.enrich import Input, Output, html
 
 from disease_trend_system.app import app
 from disease_trend_system.app import srv as server
-from disease_trend_system.callbacks.trends_callbacks import update_line_chart
+from disease_trend_system.callbacks.trends_callbacks import (display_hover,
+                                                             update_line_chart)
 from disease_trend_system.layouts.navbar import Navbar
 from disease_trend_system.layouts.trends_layout import trends_layout
 from disease_trend_system.services import authentication as au
@@ -48,8 +49,7 @@ def display_page(pathname: str) -> Any:
         return html.Div(
             [
                 dcc.Markdown(
-                    """
-            Данное приложение необходимо для анализа трендов симптомокомплексов             
+                    """      
         """, className='main-content'
                 ),
                 html.Img(src="./assets/images/picture_3.jpeg",
