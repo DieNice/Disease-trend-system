@@ -73,7 +73,7 @@ def trends_layout_detail():
                                       style_table={
                                           'height': '70vh', 'overflowY': 'auto'},
                                       style_header={
-            'backgroundColor': 'black',
+            'backgroundColor': '#6A5ACD',
             'fontWeight': 'bold',
             'color': "white"
         },

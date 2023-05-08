@@ -279,21 +279,6 @@ diskcache = ["diskcache (>=5.2.1)", "multiprocess (>=0.70.12)", "psutil (>=5.8.0
 testing = ["beautifulsoup4 (>=4.8.2)", "cryptography (<3.4)", "dash-testing-stub (>=0.0.2)", "lxml (>=4.6.2)", "multiprocess (>=0.70.12)", "percy (>=2.0.2)", "psutil (>=5.8.0)", "pytest (>=6.0.2)", "requests[security] (>=2.21.0)", "selenium (>=3.141.0,<=4.2.0)", "waitress (>=1.4.4)"]
 
 [[package]]
-name = "dash-auth"
-version = "2.0.0"
-description = "Dash Authorization Package."
-category = "main"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "dash_auth-2.0.0-py3-none-any.whl", hash = "sha256:32e60a700937d2c59e983a17d9422752da0f4eaabfd7a8babcae1b4266b9a95f"},
-    {file = "dash_auth-2.0.0.tar.gz", hash = "sha256:d9eafb8f3e1f1580bcf90023f8a5915f8f44ee07d80e35490b32f3548da49cc5"},
-]
-
-[package.dependencies]
-dash = ">=1.1.1"
-
-[[package]]
 name = "dash-bootstrap-components"
 version = "1.4.1"
 description = "Bootstrap themed components for use in Plotly Dash"
@@ -443,6 +428,26 @@ Werkzeug = ">=2.2.2"
 [package.extras]
 async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
+
+[[package]]
+name = "flask-admin"
+version = "1.6.1"
+description = "Simple and extensible admin interface framework for Flask"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "Flask-Admin-1.6.1.tar.gz", hash = "sha256:24cae2af832b6a611a01d7dc35f42d266c1d6c75a426b869d8cb241b78233369"},
+    {file = "Flask_Admin-1.6.1-py3-none-any.whl", hash = "sha256:fd8190f1ec3355913a22739c46ed3623f1d82b8112cde324c60a6fc9b21c9406"},
+]
+
+[package.dependencies]
+Flask = ">=0.7"
+wtforms = "*"
+
+[package.extras]
+aws = ["boto"]
+azure = ["azure-storage-blob"]
 
 [[package]]
 name = "flask-caching"
@@ -1543,7 +1548,25 @@ files = [
     {file = "wrapt-1.15.0.tar.gz", hash = "sha256:d06730c6aed78cee4126234cf2d071e01b44b915e725a6cb439a879ec9754a3a"},
 ]
 
+[[package]]
+name = "wtforms"
+version = "3.0.1"
+description = "Form validation and rendering for Python web development."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "WTForms-3.0.1-py3-none-any.whl", hash = "sha256:837f2f0e0ca79481b92884962b914eba4e72b7a2daaf1f939c890ed0124b834b"},
+    {file = "WTForms-3.0.1.tar.gz", hash = "sha256:6b351bbb12dd58af57ffef05bc78425d08d1914e0fd68ee14143b7ade023c5bc"},
+]
+
+[package.dependencies]
+MarkupSafe = "*"
+
+[package.extras]
+email = ["email-validator"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "47aac7c25b15ee42b4e91b0e231a0d5b67fcf9c916cccfd914b6c719892ed936"
+content-hash = "28871ff91440a9ef3e20f51b48aa755da7b1f28276b438c06c52d169a8e7c974"

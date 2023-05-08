@@ -20,7 +20,7 @@ def Navbar():
         brand="Главная",
         brand_href="/",
         sticky="top",
-        color="black",
+        color="#6A5ACD",
         dark=True,
         expand="lg",
     )

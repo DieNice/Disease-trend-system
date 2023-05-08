@@ -7,23 +7,26 @@ from dash_extensions.enrich import Input, Output, html
 
 from disease_trend_system.app import app
 from disease_trend_system.app import srv as server
+from disease_trend_system.callbacks.raiting_callbacks import \
+    update_raiting_table
 from disease_trend_system.callbacks.trends_callbacks import (display_hover,
                                                              update_line_chart)
-from disease_trend_system.callbacks.raiting_callbacks import update_raiting_table
 from disease_trend_system.callbacks.trends_callbacks_detail import update_table
 from disease_trend_system.layouts.navbar import Navbar
 from disease_trend_system.layouts.raiting_layout import raiting_layout
 from disease_trend_system.layouts.trends_layout import trends_layout
 from disease_trend_system.layouts.trends_layout_detail import \
     trends_layout_detail
-from disease_trend_system.services import authentication as au
+
+# from disease_trend_system.services import authentication as au
+
 
 app_name = os.getenv("DASH_APP_PATH", "/disease_trend_system")
 
 nav = Navbar()
 
 
-auth = au.Authorizer().add_authorization(app)
+# auth = au.Authorizer().add_authorization(app)
 
 header = html.Div(
     children=[
@@ -60,7 +63,7 @@ def display_page(pathname: str) -> Any:
                 html.Img(src="./assets/images/picture_3.jpeg",
                          style={"display": "block", "margin-left": "auto", "margin-right": "auto"})
             ],
-            className="home",
+        className="home",
         )
     elif pathname.endswith("/trends"):
         return trends_layout()
@@ -77,6 +80,7 @@ def index():
 
 
 app.layout = index()
+
 
 if __name__ == '__main__':
     app.run_server(host='localhost', port=8050, debug=True)
