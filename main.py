@@ -59,7 +59,7 @@ def display_page(pathname: str) -> Any:
                          style={"display": "block", "margin-left": "auto", "margin-right": "auto"})
             ],
             className="home",
-        )
+        )   
     elif pathname.endswith("/trends"):
         return trends_layout()
     elif pathname.endswith("/symptoms"):
@@ -70,11 +70,11 @@ def display_page(pathname: str) -> Any:
         return "ERROR 404: Page not found!"
 
 
-def index():
+def index():    
     return html.Div([nav, container])
 
 
 app.layout = index()
 
 if __name__ == '__main__':
-    app.run_server(host='localhost', port=8050, debug=True)
+    app.run_server(host='localhost', port=8050, debug=False)

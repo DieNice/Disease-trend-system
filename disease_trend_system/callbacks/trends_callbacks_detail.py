@@ -14,12 +14,32 @@ from disease_trend_system.services.create_data_trend import TrendDetector
 from disease_trend_system.services.symptom_complexes_dao import SymptomsDAO
 
 
+def pprint_json(json_str: str) -> str:
+    """Форматирование json строк
+
+    Args:
+        json_str (str): входная json строка
+
+    Returns:
+        str: выходная json строка
+    """
+    tmp_str = json_str
+    tmp_str = tmp_str.replace('\'', '\"')
+    tmp_str = tmp_str.replace('\"{', '{')
+    tmp_str = tmp_str.replace('}\"', '}')
+    tmp_dict = json.loads(tmp_str)
+    result_str = ""
+    for k, v in tmp_dict.items():
+        result_str += f"{k}:{v}\n"
+    return result_str
+
+
 @app.callback(
     Output("table-1", "data"),
     Input("btn-2", "n_clicks"),
     Input("date-range-2", "start_date"),
     Input("date-range-2", "end_date"),
-    State("id_threshold_input", "value")
+    State("id_threshold_input-2", "value")
 )
 def update_table(n_clicks: int, start_date: datetime,
                  end_date: datetime, input_thresold: int):
@@ -44,6 +64,8 @@ def update_table(n_clicks: int, start_date: datetime,
 
     df = symptom_dao.get_trends_data(start_date, end_date)
     df = TrendDetector(input_thresold).execute(df)
+    df["extra"] = df["extra"].apply(pprint_json)
+    df["percent_people"] = df["percent_people"]/100
 
     if df.empty:
         return []
