@@ -14,7 +14,7 @@ def Navbar():
                         href=f"{app_name}/trends")),
             dbc.NavItem(dbc.NavLink("Детализация симптомокомплексов",
                         href=f"{app_name}/symptoms")),
-            dbc.NavItem(dbc.NavLink("Рейтинг симптомокомплексов",
+            dbc.NavItem(dbc.NavLink("Рейтинг симптомокомплексов за месяц",
                         href=f"{app_name}/rating")),
         ],
         brand="Главная",
