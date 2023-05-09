@@ -9,7 +9,7 @@ def login() -> html.Div:
     return html.Div([
     dcc.Location(id='url_login', refresh=True),
     html.Div([
-        html.H2('''Введите данные для входа в систему''', id='h1'),
+        html.H2('''Введите данные для входа в систему''', id='h1', className='login-title'),
         dcc.Input(
             placeholder='Enter your username',
             type='text',

@@ -6,10 +6,12 @@
     border-radius: 5px;
     padding: 20px;
 }
-#h1 {
-	font-size: 17px;
+.login-title {
+	font-size: 23px;
 	line-height: 21px;
 	min-height: 51px;
+    padding: 10px;
+    text-align: center;
 }
 .form-input {
     width: 100%;
@@ -37,4 +39,39 @@
 .form-output {
     margin-top: 20px;
     text-align: center;
+}
+
+.userIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    margin: auto 5px auto auto;
+}
+
+.header-username {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+    margin-right: 10px;
+    color: black;
+}
+
+.header-status {
+    color: #0069d9;
+    font-size: 14px;
+    font-weight: bold;
+    margin-right: 10px;
+    margin-left: 5px;
+}
+
+.authBlock {
+    min-width: 60px;
+    background: white;
+    margin-left: 40px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: row;
+    height: 40px;
+    align-items: center
 }
