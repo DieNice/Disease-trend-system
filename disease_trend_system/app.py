@@ -5,6 +5,7 @@ import sqlalchemy
 from dash_extensions.enrich import DashProxy, MultiplexerTransform
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask_login import LoginManager, UserMixin
 from flask_restful import Api
 from sqlalchemy import Column, DateTime, Integer, MetaData, String, event
 from sqlalchemy.orm import Session, declarative_base
@@ -17,7 +18,7 @@ from disease_trend_system.endpoints import SymptomsResource
 Base = declarative_base()
 
 
-class User(Base):
+class User(Base, UserMixin):
     """Класс пользователя
     """
 
@@ -98,3 +99,17 @@ api = Api(srv)
 api.add_resource(SymptomsResource, '/symptoms')
 
 app.config.suppress_callback_exceptions = True
+
+
+login_manager = LoginManager()
+login_manager.init_app(srv)
+login_manager.login_view = '/login'
+
+
+@ login_manager.user_loader
+def load_user(username):
+    ''' This function loads the user by user id. Typically this looks up the user from a user database.
+        We won't be registering or looking up users in this example, since we'll just login using LDAP server.
+        So we'll simply return a User object with the passed in username.
+    '''
+    return User(username)
