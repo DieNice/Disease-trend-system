@@ -52,7 +52,7 @@ class User(Base, UserMixin):
         Returns:
             bool: Да/Нет
         """
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password, password)
 
 
 @event.listens_for(User.password, 'set', retval=True)
@@ -107,9 +107,14 @@ login_manager.login_view = '/login'
 
 
 @ login_manager.user_loader
-def load_user(username):
+def load_user(user_id):
     ''' This function loads the user by user id. Typically this looks up the user from a user database.
         We won't be registering or looking up users in this example, since we'll just login using LDAP server.
         So we'll simply return a User object with the passed in username.
     '''
-    return User(username)
+    session = create_session()
+
+    with session:
+        user = session.query(User).filter_by(id=user_id).first()
+
+    return user

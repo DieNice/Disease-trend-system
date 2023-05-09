@@ -10,6 +10,8 @@ from flask_login import current_user, logout_user
 
 from disease_trend_system.app import app
 from disease_trend_system.app import srv as server
+from disease_trend_system.callbacks.auth_callbalcks import (login_button_click,
+                                                            login_status)
 from disease_trend_system.callbacks.raiting_callbacks import \
     update_raiting_table
 from disease_trend_system.callbacks.trends_callbacks import (display_hover,
@@ -23,15 +25,10 @@ from disease_trend_system.layouts.trends_layout import trends_layout
 from disease_trend_system.layouts.trends_layout_detail import \
     trends_layout_detail
 
-# from disease_trend_system.services import authentication as au
-
-
 app_name = os.getenv("DASH_APP_PATH", "/disease_trend_system")
 
 nav = Navbar()
 
-
-# auth = au.Authorizer().add_authorization(app)
 
 header = html.Div(
     children=[
@@ -65,23 +62,24 @@ def display_page(pathname: str) -> Any:
     if pathname.endswith("/login"):
         view = login()
     elif pathname in [app_name, app_name + "/", '/']:
-        if current_user.is_authenticated:
-            view = html.Div(
-                [
-                    dcc.Markdown(
-                        """      
+        view = html.Div(
+            [
+                dcc.Markdown(
+                    """      
         """, className='main-content'
-                    ),
-                    html.Img(src="./assets/images/picture_3.jpeg",
-                             style={"display": "block", "margin-left": "auto", "margin-right": "auto"})
-                ],
-                className="home",
-            )
+                ),
+                html.Img(src="./assets/images/picture_3.jpeg",
+                         style={"display": "block", "margin-left": "auto", "margin-right": "auto"})
+            ],
+            className="home",
+        )
     elif pathname.endswith("/success"):
         if current_user.is_authenticated:
             view = success()
         else:
             view = failed()
+    elif pathname.endswith("/logout"):
+        view = logout()
     elif pathname.endswith("/trends"):
         if current_user.is_authenticated:
             view = trends_layout()
@@ -105,7 +103,7 @@ def display_page(pathname: str) -> Any:
 def index():
     return html.Div([nav, container,
                      dcc.Location(id='redirect', refresh=True),
-                     dcc.Store(id='login-status', storage_type='session'),
+                     dcc.Store(id='login-status', storage_type='session')
                      ])
 
 
