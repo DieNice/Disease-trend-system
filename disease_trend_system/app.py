@@ -28,6 +28,7 @@ class User(Base, UserMixin):
     username = Column(String(50), nullable=False, unique=True)
     email = Column(String(100), nullable=False, unique=True)
     password = Column(String(120), nullable=False)
+    role = Column(Integer, nullable=False)
     created_on = Column(DateTime, default=datetime.utcnow)
     updated_on = Column(DateTime(), default=datetime.utcnow,
                         onupdate=datetime.utcnow)
@@ -79,7 +80,7 @@ def create_session():
 session = create_session()
 
 app = DashProxy(__name__, assets_folder='assets',
-                external_stylesheets=[dbc.themes.MATERIA], transforms=[MultiplexerTransform()])
+                external_stylesheets=[dbc.themes.MATERIA], transforms=[MultiplexerTransform(),])
 
 
 app.title = "Disease trend system"

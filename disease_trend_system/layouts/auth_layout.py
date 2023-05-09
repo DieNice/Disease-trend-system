@@ -6,19 +6,35 @@ from dash_extensions.enrich import html
 def login() -> html.Div:
     """View login
     """
-    return html.Div([dcc.Location(id='url_login', refresh=True),
-                     html.H2('''Please log in to continue:''', id='h1'),
-                     html.Div(
-        dcc.Input(placeholder='Enter your username',
-                  type='text', id='uname-box')),
+    return html.Div([
+    dcc.Location(id='url_login', refresh=True),
+    html.Div([
+        html.H2('''Введите данные для входа в систему''', id='h1'),
+        dcc.Input(
+            placeholder='Enter your username',
+            type='text',
+            id='uname-box',
+            className='form-input'
+        ),
+        dcc.Input(
+            placeholder='Enter your password',
+            type='password',
+            id='pwd-box',
+            className='form-input'
+        ),
+        html.Button(
+            children='Login',
+            type='submit',
+            id='login-button',
+            className='form-button'
+        ),
         html.Div(
-        dcc.Input(placeholder='Enter your password',
-                  type='password', id='pwd-box')),
-        html.Div(
-        html.Button(children='Login',
-                    type='submit', id='login-button')),
-        html.Div(children='', id='output-state'),
-        html.Br()], className="login-form")
+            children='',
+            id='output-state',
+            className='form-output'
+        )
+    ], className='login-form')
+])
 
 
 def success() -> html.Div:
@@ -26,7 +42,7 @@ def success() -> html.Div:
     """
     return html.Div([html.Div([html.H2('Login successful.'),
                               html.Br(),
-                              dcc.Link('Go to Master', href='/master')])
+                              dcc.Link('Go Home', href='/')])
                      ], className="login-form")
 
 

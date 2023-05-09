@@ -1,0 +1,40 @@
+.login-form {
+    max-width: 500px;
+    margin: auto;
+    margin-top: 50px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+}
+#h1 {
+	font-size: 17px;
+	line-height: 21px;
+	min-height: 51px;
+}
+.form-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    font-family: 'Open Sans', sans-serif;
+}
+.form-button {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #007bff;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-family: 'Open Sans', sans-serif;
+    cursor: pointer;
+}
+.form-button:hover {
+    background-color: #0069d9;
+}
+.form-output {
+    margin-top: 20px;
+    text-align: center;
+}
