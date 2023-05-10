@@ -9,8 +9,10 @@ from flask_admin import Admin, expose, helpers
 from flask_admin.contrib.sqla import ModelView
 from flask_login import LoginManager, UserMixin, current_user
 from flask_restful import Api
-from sqlalchemy import Column, DateTime, Integer, MetaData, String, event
+from sqlalchemy import (Column, DateTime, Double, Integer, MetaData, String,
+                        event)
 from sqlalchemy.orm import Session, declarative_base
+from sqlalchemy_utils import JSONType
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from disease_trend_system.config import (SECRET_KEY, hostname_db, name_db,
@@ -56,20 +58,19 @@ class User(Base, UserMixin):
             bool: Да/Нет
         """
         return check_password_hash(self.password, password)
-        
+
+
 class SymptomComplexes(Base):
     """Класс симптомокомплексов
     """
-    __table__ = 'symptom_complexes'
+    __tablename__ = 'symptom_complexes'
     id = Column(Integer, primary_key=True)
-    total_number = Column(Integer, nullable = False)
-    date = Column(DateTime, nullable = False)
-    percent_people = Column(Double, nullable = False)
-    extra = Column(JSONType, nullable = False)
-    symptom_hash = Column(String(32), nullable = False)
-    symptom_complex_hash = Column(String(32), nullable = False)
-
-    
+    total_number = Column(Integer, nullable=False)
+    date = Column(DateTime, nullable=False)
+    percent_people = Column(Double, nullable=False)
+    extra = Column(JSONType, nullable=False)
+    symptom_hash = Column(String(32), nullable=False)
+    symptom_complex_hash = Column(String(32), nullable=False)
 
 
 @event.listens_for(User.password, 'set', retval=True)
