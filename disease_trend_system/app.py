@@ -1,11 +1,13 @@
 from datetime import datetime
 
 import dash_bootstrap_components as dbc
-import sqlalchemy
+import flask_admin as admin
+import sqlalchemy.dialects
 from dash_extensions.enrich import DashProxy, MultiplexerTransform
-from flask_admin import Admin
+from flask import redirect
+from flask_admin import Admin, expose, helpers
 from flask_admin.contrib.sqla import ModelView
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin, current_user
 from flask_restful import Api
 from sqlalchemy import Column, DateTime, Integer, MetaData, String, event
 from sqlalchemy.orm import Session, declarative_base
@@ -103,9 +105,30 @@ app.title = "Disease trend system"
 srv = app.server
 srv.config['SECRET_KEY'] = SECRET_KEY
 srv.config['FLASK_ADMIN_SWATCH'] = 'cosmo'
-admin = Admin(srv, name='trend system', template_mode='bootstrap3')
 
-admin.add_view(ModelView(User, session))
+
+class MyAdminIndexView(admin.AdminIndexView):
+
+    @expose('/')
+    def index(self):
+        if not current_user.is_authenticated:
+            return redirect('/desease-knowlege-base-dash/login')
+        return super(MyAdminIndexView, self).index()
+
+
+class DiseaseModelView(ModelView):
+
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.role == 1
+
+    def inaccessible_callback(self, name, **kwargs):
+        # redirect to login page if user doesn't have access
+        return redirect('/desease-knowlege-base-dash/login')
+
+
+admin = Admin(srv, name='trend system',
+              index_view=MyAdminIndexView(), template_mode='bootstrap4')
+admin.add_view(DiseaseModelView(User, session))
 
 
 api = Api(srv)

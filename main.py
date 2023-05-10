@@ -72,7 +72,7 @@ def display_page(pathname: str) -> Any:
                          style={"display": "block", "margin-left": "auto", "margin-right": "auto"})
             ],
             className="home",
-        )
+        )   
     elif pathname.endswith("/success"):
         if current_user.is_authenticated:
             view = success()
@@ -96,7 +96,7 @@ def display_page(pathname: str) -> Any:
         else:
             view = login()
     else:
-        return "ERROR 404: Page not found!"
+        return "ERROR 404: Page not found!", url
     return view, url
 
 

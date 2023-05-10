@@ -1,0 +1,49 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+{{ super() }}
+<div class="row-fluid">
+
+    <div>
+        {% if current_user.is_authenticated %}
+        <h1>Административная панель</h1>
+        <p class="lead">
+            Описание:
+        </p>
+        <p>
+            Данная раздел доступен только пользователям с привелегиями администратора. Администратор
+            имеет право создавать/редактировать/удалять других пользователей, в том числе себя.
+        </p>
+        <p>
+            Создавать других пользователей имеет право только администратор.
+            При создании пользователя пароль хешируется автоматически.
+        </p>
+        <h4>Описание ролей</h4>
+        <ul>
+            <li>0 - обычный пользователь</li>
+            <li>1 - привелегированный (администратор)</li>
+        </ul>
+        {% else %}
+        <form method="POST" action="">
+            {{ form.hidden_tag() if form.hidden_tag }}
+            {% for f in form if f.type != 'CSRFTokenField' %}
+            <div class="form-group">
+                {{ f.label }}<br>
+                {{ f }}
+                {% if f.errors %}
+                <ul>
+                    {% for e in f.errors %}
+                    <li>{{ e }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+        {{ link | safe }}
+        {% endif %}
+    </div>
+
+    <a class="btn btn-primary" href="/"><i class="icon-arrow-left icon-white"></i>Назад</a>
+</div>
+{% endblock body %}
