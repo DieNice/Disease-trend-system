@@ -10,9 +10,4 @@ RUN /bin/true\
     && rm -rf /root/.cache/pypoetry
 RUN python3.10 -m pip install setuptools
 
-ARG HOSTNAME_DB=localhost
-ARG USERNAME_DB=developer
-ARG PASSWORD_DB=dev_password
-ARG NAME_DB=disease-trend
-
-CMD [ "gunicorn", "--workers=3", "--threads=3", "-b 0.0.0.0:8050", "main:app"]
+CMD [ "gunicorn", "--workers=3", "--threads=3", "-b 0.0.0.0:8050", "main:server"]
