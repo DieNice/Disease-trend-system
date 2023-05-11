@@ -5,7 +5,7 @@ import flask_admin as admin
 import sqlalchemy.dialects
 from dash_extensions.enrich import DashProxy, MultiplexerTransform
 from flask import redirect
-from flask_admin import Admin, expose, helpers
+from flask_admin import Admin, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_login import LoginManager, UserMixin, current_user
 from flask_restful import Api
@@ -94,8 +94,6 @@ def create_session():
     return Session(engine)
 
 
-session = create_session()
-
 app = DashProxy(__name__, assets_folder='assets',
                 external_stylesheets=[dbc.themes.MATERIA], transforms=[MultiplexerTransform(),])
 
@@ -129,7 +127,7 @@ class DiseaseModelView(ModelView):
 
 admin = Admin(srv, name='trend system',
               index_view=MyAdminIndexView(), template_mode='bootstrap4')
-admin.add_view(DiseaseModelView(User, session))
+admin.add_view(DiseaseModelView(User, create_session()))
 
 
 api = Api(srv)
@@ -155,5 +153,6 @@ def load_user(user_id):
 
     with session:
         user = session.query(User).filter_by(id=user_id).first()
-
+    session.close()
+    del session
     return user

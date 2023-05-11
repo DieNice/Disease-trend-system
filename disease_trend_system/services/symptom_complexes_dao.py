@@ -77,6 +77,8 @@ class SymptomsDAO:
                 conn.execute(tbl.insert(),
                              symptom_dict)
             conn.commit()
+            conn.close()
+        self.engine.dispose()
 
     def _insert_with_concurrency(self, symptoms: List[SymptomDTO]) -> None:
         """Вставка данных с учетом пересечений с другими симптомокомлексами
@@ -201,6 +203,7 @@ class SymptomsDAO:
                    {values};'''
                 conn.execute(text(query))
                 conn.commit()
+                conn.close()
 
     def save_symptoms(self, symptoms: List[SymptomDTO]) -> None:
         """Сохранение списка симптов (симптомокомлекс) в таблицу
@@ -220,6 +223,7 @@ class SymptomsDAO:
             self._insert(symptoms)
         else:
             self._insert_with_concurrency(symptoms)
+        self.engine.dispose()
 
     @cache
     def get_trends_data(self, start_date: datetime, end_date: datetime) -> DataFrame:
@@ -263,5 +267,7 @@ class SymptomsDAO:
         '''
         with self.engine.connect() as conn:
             df = pd.read_sql(text(query_text), conn)
+            conn.close()
+            self.engine.dispose()
 
         return df
