@@ -1,0 +1,37 @@
+version: '3.1'
+
+services:
+  web-app:
+    build: .
+    container_name: web-app
+    volumes:
+      - .:/usr/src/
+    ports:
+    - 8050:8050 
+    restart: always
+    environment:
+      HOSTNAME_DB: mysql-dev
+      USERNAME_DB: developer
+      PASSWORD_DB: dev_password
+      NAME_DB: disease-trend
+      SECRET_KEY: super_secret_key
+    depends_on:
+      - db
+    networks:
+      - webnet
+  db:
+    image: mysql
+    container_name: mysql-dev
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_USER: developer
+      MYSQL_PASSWORD: dev_password 
+      MYSQL_DATABASE: disease-trend
+    ports:
+      - 3306:3306
+    networks:
+      - webnet
+networks:
+  webnet:
