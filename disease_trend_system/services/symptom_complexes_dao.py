@@ -19,6 +19,8 @@ class SymptomDTO:
     value: Any
     percent_people: float
     total_number: int
+    city:str
+    hospital:str
     date: datetime
     symptom_hash: str
     symptom_complex_hash: str
@@ -94,6 +96,8 @@ class SymptomsDAO:
                 `total_number` int unsigned NOT NULL,
                 `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `percent_people` double NOT NULL,
+                `city` varchar(64) NOT NULL,
+                `hospital` varchar(128) NOT NULL,
                 `extra` json NOT NULL,
                 `symptom_hash` varchar(32) NOT NULL,
                 `symptom_complex_hash` varchar(32) NOT NULL
@@ -108,6 +112,8 @@ class SymptomsDAO:
                     symptom_complexes_temp (total_number,
                     date,
                     percent_people,
+                    city,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash
@@ -123,6 +129,8 @@ class SymptomsDAO:
                     sct.total_number as '_total_number',
                     sct.`date` as '_date',
                     sct.percent_people as '_percent_people',
+                    stc.city as '_city',
+                    stc.hospital as '_hospital'
                     sct.extra as '_extra',
                     sct.symptom_hash as '_symptom_hash',
                     sct.symptom_complex_hash as '_symptom_complex_hash'
@@ -153,6 +161,8 @@ class SymptomsDAO:
                     symptom_complexes(total_number,
                     `date`,
                     percent_people,
+                    city,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash
@@ -160,6 +170,8 @@ class SymptomsDAO:
                     sct.total_number,
                     sct.`date`,
                     sct.percent_people,
+                    sct.city,
+                    sct.hospital,
                     sct.extra,
                     sct.symptom_hash,
                     scht.symptom_complex_hash
@@ -169,12 +181,16 @@ class SymptomsDAO:
         queries['query_8'] = '''insert into symptom_complexes(total_number,
                     `date`,
                     percent_people,
+                    city,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash)
                 select total_number,
                     `date`,
                     percent_people,
+                    city,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash from symptom_complexes_temp;'''
@@ -195,6 +211,8 @@ class SymptomsDAO:
                     symptom_complexes (total_number,
                     date,
                     percent_people,
+                    city,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash
@@ -242,6 +260,8 @@ class SymptomsDAO:
                     sc.id ,
                     sc.total_number,
                     sc.percent_people,
+                    sc.city,
+                    sc.hospital,
                     sc.extra,
                     sc.symptom_hash,
                     sc.symptom_complex_hash,	

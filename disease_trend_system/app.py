@@ -68,6 +68,8 @@ class SymptomComplexes(Base):
     total_number = Column(Integer, nullable=False)
     date = Column(DateTime, nullable=False)
     percent_people = Column(Double, nullable=False)
+    city = Column(String(64), nullable=False)
+    hospital = Column(String(128), nullable=False)
     extra = Column(JSONType, nullable=False)
     symptom_hash = Column(String(32), nullable=False)
     symptom_complex_hash = Column(String(32), nullable=False)

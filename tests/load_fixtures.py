@@ -15,9 +15,10 @@ class Generator:
     """Generator test data
     """
 
-    def __init__(self, FILE='symptoms', MIN_RANGE=2, MAX_RANGE=5, FREQUENCY=3, OUTCAST=10, MIN_OBSERVED=20,
+    def __init__(self, SYMPTOMS='symptoms', HOSPITALS='hospitals', MIN_RANGE=2, MAX_RANGE=5, FREQUENCY=3, OUTCAST=10, MIN_OBSERVED=20,
                  MAX_OBSERVED=100, DAY_NIGHT_RATIO=3, DAY_RANGE=3, PERCENT_LOW = 20, PERCENT_HIGH = 90, VARIATION = 5, TREND_MIN = 3, TREND_MAX = 20):
-        self.file = FILE
+        self.symptoms = SYMPTOMS
+        self.hospitals = HOSPITALS
         self.min_range = MIN_RANGE  # Min symptoms for observe
         self.max_range = MAX_RANGE  # Max symptoms for observe
         self.frequency = FREQUENCY  # Factor to shrink quantity of observes
@@ -41,7 +42,7 @@ class Generator:
         """
         return os.path.dirname(os.path.abspath(__file__))
 
-    def _load_lines(self, file: Any) -> Tuple[int, List]:
+    def _load_lines_symptoms(self, file: Any) -> Tuple[int, List]:
         """loads list of symptoms separated into groups for different illnesses
 
         Args:
@@ -73,6 +74,13 @@ class Generator:
                 index += 1
         illness_symptoms.append(subset.copy())
         return len(illness_symptoms), illness_symptoms
+
+    def _load_lines_hospitals(self, file: Any) -> List[str,str]:
+        file = open(file, encoding='UTF-8')
+        hospitals = []
+        for line in file:
+            hospitals.append(line.split(":"))
+        return hospitals
 
     def _random_period(self, start: datetime = datetime(2023, 1, 1),
                        stop: datetime = datetime.now()) -> Tuple[datetime, datetime, int]:
@@ -185,7 +193,7 @@ class Generator:
                 unused.pop(index)
         return prev
 
-    def _gen_noice(self, data: Dict[str, Any], group_data: List, percent: float) -> List:
+    def _gen_noice(self, data: Dict[str, Any], hospitals: List, group_data: List, percent: float) -> List:
         """generates trash data with mix of symptoms
 
         Args:
@@ -201,6 +209,7 @@ class Generator:
         for group in data:
             people = random.randrange(self.min_observed, self.max_observed)
             percent = random.randrange(self.percent_low, self.percent_high)
+            city, hosp = hospitals[random.randrange(len(self.hospitals))]
             extra = {}
             for _ in range(observes):
                 people = random.randrange(self.min_observed, self.max_observed)
@@ -216,7 +225,7 @@ class Generator:
                 extra = self._make_extra(group, extra, features)
 
                 percent = self._make_percent(percent)
-                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,
+                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent, "city":city, "hospital": hosp,
                        "symptoms": extra}
                 group_data.append(inf)
         return group_data
@@ -237,7 +246,7 @@ class Generator:
                 return value + random.randrange(self.variation)
 
 
-    def _generate_dataset(self, count: int, data: List, noice: bool = False, percent: float = 10) -> List[Dict[str, Any]]:
+    def _generate_dataset(self, count: int, data: List, hospitals: List, noice: bool = False, percent: float = 10) -> List[Dict[str, Any]]:
         """generate dataset
 
         Args:
@@ -249,10 +258,10 @@ class Generator:
         Returns:
             List[Dict[str, Any]]: data for saving
         """
-        res = self._gen_groups(count, data)
+        res = self._gen_groups(count, data, hospitals)
         return res
 
-    def _gen_groups(self, count: int, data: List) -> List[Dict[str, Any]]:
+    def _gen_groups(self, count: int, data: List, hospitals: List) -> List[Dict[str, Any]]:
         """generates groups (trends for illnesses)
 
         Args:
@@ -273,6 +282,7 @@ class Generator:
                 pass
             people = random.randrange(self.min_observed, self.max_observed)
             percent = random.randrange(self.percent_low, self.percent_high)
+            city, hosp = hospitals[random.randrange(len(hospitals))]
             extra: Dict[str, Any] = {}
 
             for _ in range(observes):
@@ -296,7 +306,7 @@ class Generator:
                 # extra_hashed = self.get_extra_hashed(extra)
                 # complex_hashed = self.get_complex_hashed(extra)
                 percent = self._make_percent(percent)
-                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,
+                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,"city": city, "hospital": hosp,
                        "symptoms": extra}
                 result.append(inf)
         return result
@@ -307,9 +317,10 @@ class Generator:
         Returns:
             List[Dict[str, Any]]: list of data generation
         """
-        count, data = self._load_lines(f"{self._cur_dir()}/{self.file}")
-        result = self._generate_dataset(count, data, True)
-        # result = self._gen_noice(data, result, 10)
+        count, data = self._load_lines_symptoms(f"{self._cur_dir()}/{self.symptoms}")
+        hosp = self._load_lines_hospitals(f"{self._cur_dir()}/{self.hospitals}")
+        result = self._generate_dataset(count, data, hosp, True)
+        # result = self._gen_noice(data,hosp, result, 10)
         return result
 
     def export_to_json(self, filename: str, data: List) -> None:
