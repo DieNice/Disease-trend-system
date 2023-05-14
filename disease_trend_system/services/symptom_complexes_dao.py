@@ -1,7 +1,7 @@
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from functools import cache
-from typing import Any, Generator, List
+from typing import Any, Generator, List, Optional
 
 import pandas as pd
 import sqlalchemy
@@ -212,6 +212,8 @@ class SymptomsDAO:
                 for _, query in queries.items():
                     conn.execute(text(query))
                     conn.commit()
+                conn.close()
+            self.engine.dispose()
         except IntegrityError as _:
             with self.engine.connect() as conn:
                 query = f'''insert
@@ -252,20 +254,81 @@ class SymptomsDAO:
             self._insert_with_concurrency(symptoms)
         self.engine.dispose()
 
+    def get_cities(self) -> List[str]:
+        """Получить список городов
+
+        Returns:
+            List[str]: Список городов
+        """
+        with self.engine.connect() as conn:
+            cities = conn.execute(
+                text("select distinct city from symptom_complexes;"))
+
+            conn.close()
+            self.engine.dispose()
+        return [city[0] for city in cities]
+
+    def get_regions_by_city(self, city: str) -> List[str]:
+        """Получить список районов по городу
+
+        Args:
+            city (str): город
+
+        Returns:
+            List[str]: список районов
+        """
+        with self.engine.connect() as conn:
+            regions = conn.execute(
+                text(f"select distinct region from symptom_complexes sc where sc.city='{city}';"))
+
+            conn.close()
+            self.engine.dispose()
+        return [region[0] for region in regions]
+
+    def get_hospitals_by_city_region(self, city: str, region: str) -> List[str]:
+        """Получить список мед.учреждений по городу и району
+
+        Args:
+            city (str): город
+            regions (str): район
+
+        Returns:
+            List[str]: список мед. учреждений
+        """
+        with self.engine.connect() as conn:
+            hospitals = conn.execute(
+                text(f"select distinct hospital from symptom_complexes sc where sc.city='{city}' and sc.region='{region}';"))
+
+            conn.close()
+            self.engine.dispose()
+        return [hospital[0] for hospital in hospitals]
+
     @cache
-    def get_trends_data(self, start_date: datetime, end_date: datetime) -> DataFrame:
+    def get_trends_data(self, start_date: datetime, end_date: datetime,
+                        city: Optional[str] = None, region: Optional[str] = None,
+                        hospital: Optional[str] = None) -> DataFrame:
         """Получить график трендов
 
         Args:
             start_date (datetime): Начала диапазона
             end_date (datetime): Конец диапазона
+            city (str): Город
+            region (str): Район
+            hospital (str): Мед. учреждение
 
         Returns:
             DataFrame: Датафрейм с данными
         """
+        condition = ''
+        if city is not None:
+            condition += f"and sc.city='{city}' "
+            if region is not None:
+                condition += f"and sc.region='{region}' "
+                if hospital is not None:
+                    condition += f"and sc.hospital = '{hospital}'"
         special_replace = '"},{"'
         query_text = f'''with filtered_dates as (
-                select
+                select  
                     sc.id ,
                     sc.total_number,
                     sc.percent_people,
@@ -279,7 +342,8 @@ class SymptomsDAO:
                 from
                     symptom_complexes sc
                 where
-                    (date_format(sc.`date`, "%Y-%m-%d") BETWEEN date('{start_date}') and date('{end_date}')))
+                    (date_format(sc.`date`, "%Y-%m-%d") BETWEEN date('{start_date}') and date('{end_date}'))
+                    {condition})
                 select
                     sc.symptom_complex_hash,
                     sc.date,

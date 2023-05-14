@@ -38,6 +38,7 @@ def pprint_json(json_str: str) -> str:
 
 @app.callback(
     Output("table-2", "data"),
+    Output("header-report", "children"),
     Input("date-range-3", "date")
 )
 def update_raiting_table(date: datetime):
@@ -61,6 +62,10 @@ def update_raiting_table(date: datetime):
     end_date = datetime.fromisoformat(date)
     start_date = end_date - timedelta(days=MAX_DELTA)
     df = symptom_dao.get_trends_data(start_date, end_date)
+
+    d1 = start_date.strftime("%d/%m/%Y")
+    d2 = end_date.strftime("%d/%m/%Y")
+    header_report = f"Рейтинг симптомокомлексов с {d1} по {d2}"
     df["extra"] = df["extra"].apply(pprint_json)
     df["percent_people"] = df["percent_people"]/100
     agg_df = df.groupby(["symptom_complex_hash", "extra"]).agg(
@@ -69,6 +74,6 @@ def update_raiting_table(date: datetime):
     agg_df = agg_df.sort_values(['date'], ascending=False)
 
     if df.empty:
-        return []
+        return [], header_report
 
-    return agg_df.to_dict('records')
+    return agg_df.to_dict('records'), header_report
