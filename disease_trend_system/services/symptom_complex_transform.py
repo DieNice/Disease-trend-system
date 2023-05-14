@@ -48,6 +48,7 @@ class SymtomComplexTransform:
                 percent_people=symptom_complex["percent_people"],
                 total_number=symptom_complex["total_number_people"],
                 city=symptom_complex["city"],
+                region=symptom_complex["region"],
                 hospital=symptom_complex["hospital"],
                 date=symptom_complex["date_symptoms"],
                 symptom_hash=symptom_hash,

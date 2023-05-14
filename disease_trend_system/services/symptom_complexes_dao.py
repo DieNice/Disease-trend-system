@@ -19,8 +19,9 @@ class SymptomDTO:
     value: Any
     percent_people: float
     total_number: int
-    city:str
-    hospital:str
+    city: str
+    region: str
+    hospital: str
     date: datetime
     symptom_hash: str
     symptom_complex_hash: str
@@ -33,7 +34,7 @@ class SymptomDTO:
     def __repr__(self) -> str:
         extra = str({self.name: self.value})
         extra = extra.replace('\'', '\"')
-        return f"({self.total_number},'{self.date}',{self.percent_people},'{extra}','{self.symptom_hash}','{self.symptom_complex_hash}')"
+        return f"({self.total_number},'{self.date}',{self.percent_people},'{self.city}','{self.region}','{self.hospital}','{extra}','{self.symptom_hash}','{self.symptom_complex_hash}')"
 
 
 class SymptomsDAO:
@@ -97,6 +98,7 @@ class SymptomsDAO:
                 `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `percent_people` double NOT NULL,
                 `city` varchar(64) NOT NULL,
+                `region` varchar(128) NOT NULL,
                 `hospital` varchar(128) NOT NULL,
                 `extra` json NOT NULL,
                 `symptom_hash` varchar(32) NOT NULL,
@@ -113,6 +115,7 @@ class SymptomsDAO:
                     date,
                     percent_people,
                     city,
+                    region,
                     hospital,
                     extra,
                     symptom_hash,
@@ -129,8 +132,9 @@ class SymptomsDAO:
                     sct.total_number as '_total_number',
                     sct.`date` as '_date',
                     sct.percent_people as '_percent_people',
-                    stc.city as '_city',
-                    stc.hospital as '_hospital'
+                    sct.city as '_city',
+                    sct.region as '_region',
+                    sct.hospital as '_hospital',
                     sct.extra as '_extra',
                     sct.symptom_hash as '_symptom_hash',
                     sct.symptom_complex_hash as '_symptom_complex_hash'
@@ -162,6 +166,7 @@ class SymptomsDAO:
                     `date`,
                     percent_people,
                     city,
+                    region,
                     hospital,
                     extra,
                     symptom_hash,
@@ -171,6 +176,7 @@ class SymptomsDAO:
                     sct.`date`,
                     sct.percent_people,
                     sct.city,
+                    sct.region,
                     sct.hospital,
                     sct.extra,
                     sct.symptom_hash,
@@ -182,6 +188,7 @@ class SymptomsDAO:
                     `date`,
                     percent_people,
                     city,
+                    region,
                     hospital,
                     extra,
                     symptom_hash,
@@ -190,6 +197,7 @@ class SymptomsDAO:
                     `date`,
                     percent_people,
                     city,
+                    region,
                     hospital,
                     extra,
                     symptom_hash,
@@ -212,6 +220,7 @@ class SymptomsDAO:
                     date,
                     percent_people,
                     city,
+                    region,
                     hospital,
                     extra,
                     symptom_hash,
@@ -261,6 +270,7 @@ class SymptomsDAO:
                     sc.total_number,
                     sc.percent_people,
                     sc.city,
+                    sc.region,
                     sc.hospital,
                     sc.extra,
                     sc.symptom_hash,
