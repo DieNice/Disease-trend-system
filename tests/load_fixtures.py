@@ -15,9 +15,15 @@ class Generator:
     """Generator test data
     """
 
-    def __init__(self, FILE='symptoms', MIN_RANGE=2, MAX_RANGE=5, FREQUENCY=3, OUTCAST=10, MIN_OBSERVED=20,
-                 MAX_OBSERVED=100, DAY_NIGHT_RATIO=3, DAY_RANGE=3, PERCENT_LOW = 20, PERCENT_HIGH = 90, VARIATION = 5, TREND_MIN = 3, TREND_MAX = 20):
-        self.file = FILE
+    def __init__(self, SYMPTOMS='symptoms', HOSPITALS='hospitals', CITIES='cities',
+                 REGIONS='regions', MIN_RANGE=2, MAX_RANGE=5, FREQUENCY=3,
+                 OUTCAST=10, MIN_OBSERVED=20, MAX_OBSERVED=100, DAY_NIGHT_RATIO=3,
+                 DAY_RANGE=3, PERCENT_LOW=20, PERCENT_HIGH=90, VARIATION=5,
+                 TREND_MIN=3, TREND_MAX=20):
+        self.symptoms = SYMPTOMS
+        self.cities = CITIES
+        self.regions = REGIONS
+        self.hospitals = HOSPITALS
         self.min_range = MIN_RANGE  # Min symptoms for observe
         self.max_range = MAX_RANGE  # Max symptoms for observe
         self.frequency = FREQUENCY  # Factor to shrink quantity of observes
@@ -27,11 +33,11 @@ class Generator:
         # difference between quantity of observed at day/night_time
         self.ratio = DAY_NIGHT_RATIO
         self.day_range = DAY_RANGE  #
-        self.percent_low = PERCENT_LOW # low edge for disease approve
-        self.percent_high = PERCENT_HIGH # high edge for disease approve
-        self.variation = VARIATION # difference between previous and next
-        self.trend_min = TREND_MIN # minimal trend occurance duration
-        self.trend_max = TREND_MAX # maximum trend occurance duration
+        self.percent_low = PERCENT_LOW  # low edge for disease approve
+        self.percent_high = PERCENT_HIGH  # high edge for disease approve
+        self.variation = VARIATION  # difference between previous and next
+        self.trend_min = TREND_MIN  # minimal trend occurance duration
+        self.trend_max = TREND_MAX  # maximum trend occurance duration
 
     def _cur_dir(self) -> str:
         """current directory
@@ -41,7 +47,7 @@ class Generator:
         """
         return os.path.dirname(os.path.abspath(__file__))
 
-    def _load_lines(self, file: Any) -> Tuple[int, List]:
+    def _load_lines_symptoms(self, file: Any) -> Tuple[int, List]:
         """loads list of symptoms separated into groups for different illnesses
 
         Args:
@@ -73,6 +79,14 @@ class Generator:
                 index += 1
         illness_symptoms.append(subset.copy())
         return len(illness_symptoms), illness_symptoms
+
+    def _load_lines(self, file: Any) -> List[str]:
+        file = open(file, encoding='UTF-8')
+        lines = []
+        for line in file:
+            line = line.replace('\n', '')
+            lines.append(line)
+        return lines
 
     def _random_period(self, start: datetime = datetime(2023, 1, 1),
                        stop: datetime = datetime.now()) -> Tuple[datetime, datetime, int]:
@@ -185,7 +199,9 @@ class Generator:
                 unused.pop(index)
         return prev
 
-    def _gen_noice(self, data: Dict[str, Any], group_data: List, percent: float) -> List:
+    def _gen_noice(self, data: Dict[str, Any], hospitals: List,
+                   cities: List, regions: List,
+                   group_data: List, percent: float) -> List:
         """generates trash data with mix of symptoms
 
         Args:
@@ -201,6 +217,9 @@ class Generator:
         for group in data:
             people = random.randrange(self.min_observed, self.max_observed)
             percent = random.randrange(self.percent_low, self.percent_high)
+            hospital = hospitals[random.randrange(len(self.hospitals))]
+            city = cities[random.randrange(len(self.cities))]
+            region = regions[random.randrange(len(self.regions))]
             extra = {}
             for _ in range(observes):
                 people = random.randrange(self.min_observed, self.max_observed)
@@ -216,17 +235,20 @@ class Generator:
                 extra = self._make_extra(group, extra, features)
 
                 percent = self._make_percent(percent)
-                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,
-                       "symptoms": extra}
+                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(),
+                       "percent_people": percent, "city": city,
+                       "region": region, "hospital": hospital, "symptoms": extra}
                 group_data.append(inf)
         return group_data
 
     def _make_percent(self, value: int) -> int:
         if value < 30:  # to show some situations when trend appears
-            decision = True if random.randrange(self.percent_high) < self.percent_high // 2 else False
+            decision = True if random.randrange(
+                self.percent_high) < self.percent_high // 2 else False
             if decision:
                 return value * 2
-        sign = -1 if random.randrange(self.variation) < self.variation // 2 else 1
+        sign = - \
+            1 if random.randrange(self.variation) < self.variation // 2 else 1
         alternative = value + sign * random.randrange(self.variation)
         if not alternative > 100 and not alternative < 0:
             return alternative
@@ -236,8 +258,8 @@ class Generator:
             else:
                 return value + random.randrange(self.variation)
 
-
-    def _generate_dataset(self, count: int, data: List, noice: bool = False, percent: float = 10) -> List[Dict[str, Any]]:
+    def _generate_dataset(self, count: int, data: List, hospitals: List, cities: List,
+                          regions: List, noice: bool = False, percent: float = 10) -> List[Dict[str, Any]]:
         """generate dataset
 
         Args:
@@ -249,10 +271,11 @@ class Generator:
         Returns:
             List[Dict[str, Any]]: data for saving
         """
-        res = self._gen_groups(count, data)
+        res = self._gen_groups(count, data, hospitals, cities, regions)
         return res
 
-    def _gen_groups(self, count: int, data: List) -> List[Dict[str, Any]]:
+    def _gen_groups(self, count: int, data: List, hospitals: List,
+                    cities: List, regions: List) -> List[Dict[str, Any]]:
         """generates groups (trends for illnesses)
 
         Args:
@@ -273,6 +296,9 @@ class Generator:
                 pass
             people = random.randrange(self.min_observed, self.max_observed)
             percent = random.randrange(self.percent_low, self.percent_high)
+            hosp = hospitals[random.randrange(len(hospitals))]
+            city = cities[random.randrange(len(cities))]
+            region = regions[random.randrange(len(regions))]
             extra: Dict[str, Any] = {}
 
             for _ in range(observes):
@@ -296,8 +322,9 @@ class Generator:
                 # extra_hashed = self.get_extra_hashed(extra)
                 # complex_hashed = self.get_complex_hashed(extra)
                 percent = self._make_percent(percent)
-                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(), "percent_people": percent,
-                       "symptoms": extra}
+                inf = {"total_number_people": observed, "date_symptoms": start.isoformat(),
+                       "percent_people": percent, "city": city, "hospital": hosp,
+                       "region": region, "symptoms": extra}
                 result.append(inf)
         return result
 
@@ -307,9 +334,15 @@ class Generator:
         Returns:
             List[Dict[str, Any]]: list of data generation
         """
-        count, data = self._load_lines(f"{self._cur_dir()}/{self.file}")
-        result = self._generate_dataset(count, data, True)
-        # result = self._gen_noice(data, result, 10)
+        count, data = self._load_lines_symptoms(
+            f"{self._cur_dir()}/{self.symptoms}")
+        hosp = self._load_lines(
+            f"{self._cur_dir()}/{self.hospitals}")
+        cities = self._load_lines(f"{self._cur_dir()}/{self.cities}")
+        regions = self._load_lines(f"{self._cur_dir()}/{self.regions}")
+        result = self._generate_dataset(
+            count, data, hosp, cities, regions, True)
+        # result = self._gen_noice(data,hosp, result, 10)
         return result
 
     def export_to_json(self, filename: str, data: List) -> None:

@@ -39,10 +39,15 @@ def pprint_json(json_str: str) -> str:
     Input("btn-2", "n_clicks"),
     Input("date-range-2", "start_date"),
     Input("date-range-2", "end_date"),
-    State("id_threshold_input-2", "value")
+    State("id_threshold_input-2", "value"),
+    State("dropdown-city-2", "value"),
+    State("dropdown-region-2", "value"),
+    State("dropdown-hospital-2", "value")
 )
 def update_table(n_clicks: int, start_date: datetime,
-                 end_date: datetime, input_thresold: int):
+                 end_date: datetime, input_thresold: int,
+                 city: str, region: str,
+                 hospital: str):
     """Обновление графика трендов
 
     Args:
@@ -62,7 +67,8 @@ def update_table(n_clicks: int, start_date: datetime,
     symptom_dao = SymptomsDAO(
         username_db, password_db, hostname_db, port, name_db)
 
-    df = symptom_dao.get_trends_data(start_date, end_date)
+    df = symptom_dao.get_trends_data(
+        start_date, end_date, city, region, hospital)
     df = TrendDetector(input_thresold).execute(df)
     df["extra"] = df["extra"].apply(pprint_json)
     df["percent_people"] = df["percent_people"]/100
@@ -71,3 +77,39 @@ def update_table(n_clicks: int, start_date: datetime,
         return []
 
     return df.to_dict('records')
+
+
+@app.callback(
+    Output("dropdown-region-2", "options"),
+    Input("dropdown-city-2", "value")
+)
+def update_dropdown_cities_2(city: str):
+    """Обновить выпадающий список районов города
+
+    Args:
+        city (str): город
+    """
+    if city == '':
+        return []
+    symptom_dao = SymptomsDAO(
+        username_db, password_db, hostname_db, port, name_db)
+    return symptom_dao.get_regions_by_city(city)
+
+
+@app.callback(
+    Output("dropdown-hospital-2", "options"),
+    Input("dropdown-city-2", "value"),
+    Input("dropdown-region-2", "value")
+)
+def update_dropdown_hospitals_2(city: str, region: str):
+    """Обновить выпадающий список мед. учреждение города и района
+
+    Args:
+        city (str): город
+
+    """
+    if city == '' or region == '':
+        return []
+    symptom_dao = SymptomsDAO(
+        username_db, password_db, hostname_db, port, name_db)
+    return symptom_dao.get_hospitals_by_city_region(city, region)

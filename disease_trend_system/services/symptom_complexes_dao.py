@@ -1,7 +1,7 @@
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from functools import cache
-from typing import Any, Generator, List
+from typing import Any, Generator, List, Optional
 
 import pandas as pd
 import sqlalchemy
@@ -19,6 +19,9 @@ class SymptomDTO:
     value: Any
     percent_people: float
     total_number: int
+    city: str
+    region: str
+    hospital: str
     date: datetime
     symptom_hash: str
     symptom_complex_hash: str
@@ -31,7 +34,7 @@ class SymptomDTO:
     def __repr__(self) -> str:
         extra = str({self.name: self.value})
         extra = extra.replace('\'', '\"')
-        return f"({self.total_number},'{self.date}',{self.percent_people},'{extra}','{self.symptom_hash}','{self.symptom_complex_hash}')"
+        return f"({self.total_number},'{self.date}',{self.percent_people},'{self.city}','{self.region}','{self.hospital}','{extra}','{self.symptom_hash}','{self.symptom_complex_hash}')"
 
 
 class SymptomsDAO:
@@ -77,6 +80,8 @@ class SymptomsDAO:
                 conn.execute(tbl.insert(),
                              symptom_dict)
             conn.commit()
+            conn.close()
+        self.engine.dispose()
 
     def _insert_with_concurrency(self, symptoms: List[SymptomDTO]) -> None:
         """Вставка данных с учетом пересечений с другими симптомокомлексами
@@ -92,6 +97,9 @@ class SymptomsDAO:
                 `total_number` int unsigned NOT NULL,
                 `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `percent_people` double NOT NULL,
+                `city` varchar(64) NOT NULL,
+                `region` varchar(128) NOT NULL,
+                `hospital` varchar(128) NOT NULL,
                 `extra` json NOT NULL,
                 `symptom_hash` varchar(32) NOT NULL,
                 `symptom_complex_hash` varchar(32) NOT NULL
@@ -106,6 +114,9 @@ class SymptomsDAO:
                     symptom_complexes_temp (total_number,
                     date,
                     percent_people,
+                    city,
+                    region,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash
@@ -121,6 +132,9 @@ class SymptomsDAO:
                     sct.total_number as '_total_number',
                     sct.`date` as '_date',
                     sct.percent_people as '_percent_people',
+                    sct.city as '_city',
+                    sct.region as '_region',
+                    sct.hospital as '_hospital',
                     sct.extra as '_extra',
                     sct.symptom_hash as '_symptom_hash',
                     sct.symptom_complex_hash as '_symptom_complex_hash'
@@ -151,6 +165,9 @@ class SymptomsDAO:
                     symptom_complexes(total_number,
                     `date`,
                     percent_people,
+                    city,
+                    region,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash
@@ -158,6 +175,9 @@ class SymptomsDAO:
                     sct.total_number,
                     sct.`date`,
                     sct.percent_people,
+                    sct.city,
+                    sct.region,
+                    sct.hospital,
                     sct.extra,
                     sct.symptom_hash,
                     scht.symptom_complex_hash
@@ -167,12 +187,18 @@ class SymptomsDAO:
         queries['query_8'] = '''insert into symptom_complexes(total_number,
                     `date`,
                     percent_people,
+                    city,
+                    region,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash)
                 select total_number,
                     `date`,
                     percent_people,
+                    city,
+                    region,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash from symptom_complexes_temp;'''
@@ -186,6 +212,8 @@ class SymptomsDAO:
                 for _, query in queries.items():
                     conn.execute(text(query))
                     conn.commit()
+                conn.close()
+            self.engine.dispose()
         except IntegrityError as _:
             with self.engine.connect() as conn:
                 query = f'''insert
@@ -193,6 +221,9 @@ class SymptomsDAO:
                     symptom_complexes (total_number,
                     date,
                     percent_people,
+                    city,
+                    region,
+                    hospital,
                     extra,
                     symptom_hash,
                     symptom_complex_hash
@@ -201,6 +232,7 @@ class SymptomsDAO:
                    {values};'''
                 conn.execute(text(query))
                 conn.commit()
+                conn.close()
 
     def save_symptoms(self, symptoms: List[SymptomDTO]) -> None:
         """Сохранение списка симптов (симптомокомлекс) в таблицу
@@ -220,24 +252,89 @@ class SymptomsDAO:
             self._insert(symptoms)
         else:
             self._insert_with_concurrency(symptoms)
+        self.engine.dispose()
+
+    def get_cities(self) -> List[str]:
+        """Получить список городов
+
+        Returns:
+            List[str]: Список городов
+        """
+        with self.engine.connect() as conn:
+            cities = conn.execute(
+                text("select distinct city from symptom_complexes;"))
+
+            conn.close()
+            self.engine.dispose()
+        return [city[0] for city in cities]
+
+    def get_regions_by_city(self, city: str) -> List[str]:
+        """Получить список районов по городу
+
+        Args:
+            city (str): город
+
+        Returns:
+            List[str]: список районов
+        """
+        with self.engine.connect() as conn:
+            regions = conn.execute(
+                text(f"select distinct region from symptom_complexes sc where sc.city='{city}';"))
+
+            conn.close()
+            self.engine.dispose()
+        return [region[0] for region in regions]
+
+    def get_hospitals_by_city_region(self, city: str, region: str) -> List[str]:
+        """Получить список мед.учреждений по городу и району
+
+        Args:
+            city (str): город
+            regions (str): район
+
+        Returns:
+            List[str]: список мед. учреждений
+        """
+        with self.engine.connect() as conn:
+            hospitals = conn.execute(
+                text(f"select distinct hospital from symptom_complexes sc where sc.city='{city}' and sc.region='{region}';"))
+
+            conn.close()
+            self.engine.dispose()
+        return [hospital[0] for hospital in hospitals]
 
     @cache
-    def get_trends_data(self, start_date: datetime, end_date: datetime) -> DataFrame:
+    def get_trends_data(self, start_date: datetime, end_date: datetime,
+                        city: Optional[str] = None, region: Optional[str] = None,
+                        hospital: Optional[str] = None) -> DataFrame:
         """Получить график трендов
 
         Args:
             start_date (datetime): Начала диапазона
             end_date (datetime): Конец диапазона
+            city (str): Город
+            region (str): Район
+            hospital (str): Мед. учреждение
 
         Returns:
             DataFrame: Датафрейм с данными
         """
+        condition = ''
+        if city is not None:
+            condition += f"and sc.city='{city}' "
+            if region is not None:
+                condition += f"and sc.region='{region}' "
+                if hospital is not None:
+                    condition += f"and sc.hospital = '{hospital}'"
         special_replace = '"},{"'
         query_text = f'''with filtered_dates as (
-                select
+                select  
                     sc.id ,
                     sc.total_number,
                     sc.percent_people,
+                    sc.city,
+                    sc.region,
+                    sc.hospital,
                     sc.extra,
                     sc.symptom_hash,
                     sc.symptom_complex_hash,	
@@ -245,7 +342,8 @@ class SymptomsDAO:
                 from
                     symptom_complexes sc
                 where
-                    (date_format(sc.`date`, "%Y-%m-%d") BETWEEN date('{start_date}') and date('{end_date}')))
+                    (date_format(sc.`date`, "%Y-%m-%d") BETWEEN date('{start_date}') and date('{end_date}'))
+                    {condition})
                 select
                     sc.symptom_complex_hash,
                     sc.date,
@@ -263,5 +361,7 @@ class SymptomsDAO:
         '''
         with self.engine.connect() as conn:
             df = pd.read_sql(text(query_text), conn)
+            conn.close()
+            self.engine.dispose()
 
         return df

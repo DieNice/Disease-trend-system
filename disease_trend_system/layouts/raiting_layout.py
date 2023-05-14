@@ -29,7 +29,7 @@ def raiting_layout():
             dbc.Col()
         ]),
         dbc.Row(html.Br()),
-
+        dbc.Row(html.H2(id="header-report")),
         dbc.Row([dash_table.DataTable(data=[], id="table-2",
                                       columns=COLUMNS,
                                       filter_action="native",

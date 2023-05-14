@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 import plotly.express as px
+import plotly.graph_objs as go
 from dash import no_update
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import Input, Output, State, html
@@ -19,10 +20,14 @@ from disease_trend_system.services.symptom_complexes_dao import SymptomsDAO
     Input("btn-1", "n_clicks"),
     Input("date-range-1", "start_date"),
     Input("date-range-1", "end_date"),
-    State("id_threshold_input", "value")
+    State("id_threshold_input", "value"),
+    State("dropdown-city-1", "value"),
+    State("dropdown-region-1", "value"),
+    State("dropdown-hospital-1", "value")
 )
 def update_line_chart(n_clicks: int, start_date: datetime,
-                      end_date: datetime, input_thresold: int):
+                      end_date: datetime, input_thresold: int,
+                      city: str, region: str, hospital: str):
     """Обновление графика трендов
 
     Args:
@@ -42,7 +47,8 @@ def update_line_chart(n_clicks: int, start_date: datetime,
     symptom_dao = SymptomsDAO(
         username_db, password_db, hostname_db, port, name_db)
 
-    df = symptom_dao.get_trends_data(start_date, end_date)
+    df = symptom_dao.get_trends_data(
+        start_date, end_date, city, region, hospital)
     df = TrendDetector(input_thresold).execute(df)
     fig = px.line(df,
                   x="date", y="percent_people", color="symptom_complex_hash", markers=True)
@@ -58,12 +64,17 @@ def update_line_chart(n_clicks: int, start_date: datetime,
     Input("graph-1", "hoverData"),
     State("date-range-1", "start_date"),
     State("date-range-1", "end_date"),
-    State("id_threshold_input", "value")
+    State("id_threshold_input", "value"),
+    State("dropdown-city-1", "value"),
+    State("dropdown-region-1", "value"),
+    State("dropdown-hospital-1", "value")
 )
 def display_hover(hoverData: Dict[str, Any],
                   start_date: datetime,
                   end_date: datetime,
-                  input_thresold: int):
+                  input_thresold: int,
+                  city: str, region: str,
+                  hospital: str):
     """Подсказка при наведении
 
     Args:
@@ -82,7 +93,9 @@ def display_hover(hoverData: Dict[str, Any],
     bbox = pt["bbox"]
     symptom_dao = SymptomsDAO(
         username_db, password_db, hostname_db, port, name_db)
-    df = symptom_dao.get_trends_data(start_date, end_date)
+    df = symptom_dao.get_trends_data(
+        start_date, end_date, city, region, hospital)
+
     df = TrendDetector(input_thresold).execute(df)
     df = df[df["date"] == pt["x"]]
     df = df[df["percent_people"] == pt["y"]]
@@ -110,3 +123,39 @@ def display_hover(hoverData: Dict[str, Any],
     ]
 
     return True, bbox, children
+
+
+@app.callback(
+    Output("dropdown-region-1", "options"),
+    Input("dropdown-city-1", "value")
+)
+def update_dropdown_cities(city: str):
+    """Обновить выпадающий список районов города
+
+    Args:
+        city (str): город
+    """
+    if city == '':
+        return []
+    symptom_dao = SymptomsDAO(
+        username_db, password_db, hostname_db, port, name_db)
+    return symptom_dao.get_regions_by_city(city)
+
+
+@app.callback(
+    Output("dropdown-hospital-1", "options"),
+    Input("dropdown-city-1", "value"),
+    Input("dropdown-region-1", "value")
+)
+def update_dropdown_hospitals(city: str, region: str):
+    """Обновить выпадающий список мед. учреждение города и района
+
+    Args:
+        city (str): город
+
+    """
+    if city == '' or region == '':
+        return []
+    symptom_dao = SymptomsDAO(
+        username_db, password_db, hostname_db, port, name_db)
+    return symptom_dao.get_hospitals_by_city_region(city, region)

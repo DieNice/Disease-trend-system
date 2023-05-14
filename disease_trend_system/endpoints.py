@@ -16,6 +16,9 @@ class SymptomsResource(Resource):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument("symptoms", type=dict, required=True)
         self.parser.add_argument("percent_people", type=float, required=True)
+        self.parser.add_argument("city", type=str, required=True)
+        self.parser.add_argument("region", type=str, required=True)
+        self.parser.add_argument("hospital", type=str, required=True)
         self.parser.add_argument(
             "total_number_people", type=float, required=True)
         self.parser.add_argument(

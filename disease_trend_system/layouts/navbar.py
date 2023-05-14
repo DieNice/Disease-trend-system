@@ -18,7 +18,9 @@ def Navbar():
             dbc.NavItem(dbc.NavLink("Рейтинг симптомокомплексов за месяц",
                         href=f"{app_name}/rating")),
             dbc.NavItem([html.Div([
-                html.Img(src="./assets/images/user.jpeg", className='userIcon'),
+                html.Img(id="user-ico",
+                         src="/assets/images/picture_4.jpeg",
+                         className='userIcon'),
                 html.Div(id='username-div', className="header-username"),
                 html.Div(id='user-status-div', className="header-status")
             ],

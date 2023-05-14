@@ -14,9 +14,11 @@ from disease_trend_system.callbacks.auth_callbalcks import (login_button_click,
                                                             login_status)
 from disease_trend_system.callbacks.raiting_callbacks import \
     update_raiting_table
-from disease_trend_system.callbacks.trends_callbacks import (display_hover,
-                                                             update_line_chart)
-from disease_trend_system.callbacks.trends_callbacks_detail import update_table
+from disease_trend_system.callbacks.trends_callbacks import (
+    display_hover, update_dropdown_cities, update_dropdown_hospitals,
+    update_line_chart)
+from disease_trend_system.callbacks.trends_callbacks_detail import (
+    update_dropdown_cities_2, update_dropdown_hospitals_2, update_table)
 from disease_trend_system.layouts.auth_layout import (failed, login, logout,
                                                       success)
 from disease_trend_system.layouts.navbar import Navbar
@@ -72,7 +74,7 @@ def display_page(pathname: str) -> Any:
                          style={"display": "block", "margin-left": "auto", "margin-right": "auto"})
             ],
             className="home",
-        )   
+        )
     elif pathname.endswith("/success"):
         if current_user.is_authenticated:
             view = success()
