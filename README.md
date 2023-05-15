@@ -202,15 +202,16 @@ docker run -d --rm -e HOSTNAME_DB=disease-trend-system_db_1 -e USERNAME_DB=devel
 ```
 
 ## Описание секретов
-    * **HOSTNAME_DB** - ip адрес базы данных
-    * **USERNAME_DB** - имя пользователя владеющего правами доступа к базе данных
-    * **PASSWORD_DB** - пароль пользователя
-    * **NAME_DB** - название базы данных
-    * **SERCRET_KEY** - ключ шифрования
-    *  **ADMIN_NAME** - admin_name
-    *  **ADMIN_USERNAME** - admin_username
-    *  **ADMIN_PASSWORD** - admin_password
-    *  **ADMIN_EMAIL** - admin_email@mail.ru
+
+  * **HOSTNAME_DB** - ip адрес базы данных
+  * **USERNAME_DB** - имя пользователя владеющего правами доступа к базе данных
+  * **PASSWORD_DB** - пароль пользователя
+  * **NAME_DB** - название базы данных
+  * **SERCRET_KEY** - ключ шифрования
+  *  **ADMIN_NAME** - admin_name
+  *  **ADMIN_USERNAME** - admin_username
+  *  **ADMIN_PASSWORD** - admin_password
+  *  **ADMIN_EMAIL** - admin_email@mail.ru
 
 ## Административная панель
 
