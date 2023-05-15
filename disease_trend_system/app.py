@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import dash_bootstrap_components as dbc
 import flask_admin as admin
 import sqlalchemy.dialects
@@ -7,10 +5,9 @@ from dash_extensions.enrich import DashProxy, MultiplexerTransform
 from flask import redirect
 from flask_admin import Admin, expose
 from flask_admin.contrib.sqla import ModelView
-from flask_login import LoginManager, UserMixin, current_user
+from flask_login import LoginManager, current_user
 from flask_restful import Api
-from sqlalchemy import (Column, DateTime, Double, Integer, MetaData, String,
-                        event)
+from sqlalchemy import MetaData
 from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy_utils import JSONType
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -18,69 +15,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from disease_trend_system.config import (SECRET_KEY, hostname_db, name_db,
                                          password_db, port, username_db)
 from disease_trend_system.endpoints import SymptomsResource
-
-Base = declarative_base()
-
-
-class User(Base, UserMixin):
-    """Класс пользователя
-    """
-
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100))
-    username = Column(String(50), nullable=False, unique=True)
-    email = Column(String(100), nullable=False, unique=True)
-    password = Column(String(120), nullable=False)
-    role = Column(Integer, nullable=False)
-    created_on = Column(DateTime, default=datetime.utcnow)
-    updated_on = Column(DateTime(), default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
-
-    def __repr__(self):
-        return f"User {self.id}:{self.username}>"
-
-    def set_password(self, password: str) -> None:
-        """Установка пароля
-
-        Args:
-            password (str): пароль
-        """
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self,  password: str) -> bool:
-        """Проверка пароля на соответствие
-
-        Args:
-            password (str): пароль
-
-        Returns:
-            bool: Да/Нет
-        """
-        return check_password_hash(self.password, password)
-
-
-class SymptomComplexes(Base):
-    """Класс симптомокомплексов
-    """
-    __tablename__ = 'symptom_complexes'
-    id = Column(Integer, primary_key=True)
-    total_number = Column(Integer, nullable=False)
-    date = Column(DateTime, nullable=False)
-    percent_people = Column(Double, nullable=False)
-    city = Column(String(64), nullable=False)
-    region = Column(String(128), nullable=False)
-    hospital = Column(String(128), nullable=False)
-    extra = Column(JSONType, nullable=False)
-    symptom_hash = Column(String(32), nullable=False)
-    symptom_complex_hash = Column(String(32), nullable=False)
-
-
-@event.listens_for(User.password, 'set', retval=True)
-def hash_user_password(target, value, oldvalue, initiator):
-    if value != oldvalue:
-        return generate_password_hash(value)
-    return value
+from disease_trend_system.models import Base, User, create_admin_user
 
 
 def create_session():
@@ -144,13 +79,12 @@ app.config.suppress_callback_exceptions = True
 login_manager = LoginManager()
 login_manager.init_app(srv)
 login_manager.login_view = '/login'
+create_admin_user()
 
 
 @ login_manager.user_loader
 def load_user(user_id):
-    ''' This function loads the user by user id. Typically this looks up the user from a user database.
-        We won't be registering or looking up users in this example, since we'll just login using LDAP server.
-        So we'll simply return a User object with the passed in username.
+    ''' This function loads the user by user id
     '''
     session = create_session()
 

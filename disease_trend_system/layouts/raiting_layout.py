@@ -6,14 +6,14 @@ from dash import dash_table, dcc, html
 from dash.dash_table.Format import Format, Scheme
 
 COLUMNS = [
-    dict(id="symptom_complex_hash", name="ИД симмптомокомплекса"),
-    dict(id="date", name="Максимальная продолжительность"),
-    dict(id="percent_people", name="Процент людей",
+    dict(id="symptom_complex_hash", name="ИД СК"),
+    dict(id="date", name="Максимальная продолжительность (дни)"),
+    dict(id="percent_people", name="Макс.процент людей",
          type="numeric",
          format=Format(precision=2, scheme=Scheme.percentage)),
-    dict(id="total_number", name="Общее число людей", type="numeric",
+    dict(id="total_number", name="Макс.число людей", type="numeric",
          format=Format(precision=0, scheme=Scheme.fixed)),
-    dict(id="extra", name="Описание симптомокомлекса")]
+    dict(id="extra", name="Описание СК")]
 
 MAX_PAGE_SIZE = 50
 

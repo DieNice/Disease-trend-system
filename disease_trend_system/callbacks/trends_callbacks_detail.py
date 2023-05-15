@@ -11,6 +11,8 @@ from disease_trend_system.app import app
 from disease_trend_system.config import (hostname_db, name_db, password_db,
                                          port, username_db)
 from disease_trend_system.services.create_data_trend import TrendDetector
+from disease_trend_system.services.fake_name_service import \
+    generate_fake_symptom_complex_name
 from disease_trend_system.services.symptom_complexes_dao import SymptomsDAO
 
 
@@ -70,6 +72,9 @@ def update_table(n_clicks: int, start_date: datetime,
     df = symptom_dao.get_trends_data(
         start_date, end_date, city, region, hospital)
     df = TrendDetector(input_thresold).execute(df)
+    if not df.empty:
+        df["symptom_complex_hash"] = df["symptom_complex_hash"].apply(
+            generate_fake_symptom_complex_name)
     df["extra"] = df["extra"].apply(pprint_json)
     df["percent_people"] = df["percent_people"]/100
 

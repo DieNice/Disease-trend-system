@@ -12,6 +12,8 @@ from disease_trend_system.app import app
 from disease_trend_system.config import (hostname_db, name_db, password_db,
                                          port, username_db)
 from disease_trend_system.services.create_data_trend import TrendDetector
+from disease_trend_system.services.fake_name_service import \
+    generate_fake_symptom_complex_name
 from disease_trend_system.services.symptom_complexes_dao import SymptomsDAO
 
 
@@ -21,9 +23,9 @@ from disease_trend_system.services.symptom_complexes_dao import SymptomsDAO
     Input("date-range-1", "start_date"),
     Input("date-range-1", "end_date"),
     State("id_threshold_input", "value"),
-    State("dropdown-city-1", "value"),
-    State("dropdown-region-1", "value"),
-    State("dropdown-hospital-1", "value")
+    Input("dropdown-city-1", "value"),
+    Input("dropdown-region-1", "value"),
+    Input("dropdown-hospital-1", "value")
 )
 def update_line_chart(n_clicks: int, start_date: datetime,
                       end_date: datetime, input_thresold: int,
@@ -49,7 +51,11 @@ def update_line_chart(n_clicks: int, start_date: datetime,
 
     df = symptom_dao.get_trends_data(
         start_date, end_date, city, region, hospital)
+
     df = TrendDetector(input_thresold).execute(df)
+    if not df.empty:
+        df["symptom_complex_hash"] = df["symptom_complex_hash"].apply(
+            generate_fake_symptom_complex_name)
     fig = px.line(df,
                   x="date", y="percent_people", color="symptom_complex_hash", markers=True)
     fig.update_traces(mode="markers+lines", hovertemplate=None)
@@ -97,9 +103,13 @@ def display_hover(hoverData: Dict[str, Any],
         start_date, end_date, city, region, hospital)
 
     df = TrendDetector(input_thresold).execute(df)
+    if not df.empty:
+        df["symptom_complex_hash"] = df["symptom_complex_hash"].apply(
+            generate_fake_symptom_complex_name)
     df = df[df["date"] == pt["x"]]
     df = df[df["percent_people"] == pt["y"]]
     df = df.iloc[0]
+
     hover_data = df.to_dict()
     hover_data["extra"] = hover_data["extra"].replace('\'', '\"')
     hover_data["extra"] = hover_data["extra"].replace('\"{', '{')
