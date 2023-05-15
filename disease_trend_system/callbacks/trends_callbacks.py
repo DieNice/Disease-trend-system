@@ -23,9 +23,9 @@ from disease_trend_system.services.symptom_complexes_dao import SymptomsDAO
     Input("date-range-1", "start_date"),
     Input("date-range-1", "end_date"),
     State("id_threshold_input", "value"),
-    State("dropdown-city-1", "value"),
-    State("dropdown-region-1", "value"),
-    State("dropdown-hospital-1", "value")
+    Input("dropdown-city-1", "value"),
+    Input("dropdown-region-1", "value"),
+    Input("dropdown-hospital-1", "value")
 )
 def update_line_chart(n_clicks: int, start_date: datetime,
                       end_date: datetime, input_thresold: int,
