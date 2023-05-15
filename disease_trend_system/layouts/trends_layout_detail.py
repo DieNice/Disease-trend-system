@@ -12,14 +12,14 @@ from disease_trend_system.config import (hostname_db, name_db, password_db,
 from disease_trend_system.services.symptom_complexes_dao import SymptomsDAO
 
 COLUMNS = [
-    dict(id="symptom_complex_hash", name="ИД симмптомокомплекса"),
-    dict(id="date", name="Дата симптомокомплекса"),
+    dict(id="symptom_complex_hash", name="ИД СК"),
+    dict(id="date", name="Дата СК"),
     dict(id="percent_people", name="Процент людей",
          type="numeric",
          format=Format(precision=2, scheme=Scheme.percentage)),
     dict(id="total_number", name="Общее число людей", type="numeric",
          format=Format(precision=0, scheme=Scheme.fixed)),
-    dict(id="extra", name="Описание симптомокомлекса")]
+    dict(id="extra", name="Описание СК")]
 MAX_PAGE_SIZE = 50
 
 
@@ -113,7 +113,7 @@ def trends_layout_detail():
                 'backgroundColor': 'rgb(220, 220, 220)',
             }
         ],
-            style_as_list_view=True),
+            style_as_list_view=False),
             dcc.Tooltip(id="graph-tooltip")]),
         dbc.Row(className="justify-content-md-center"),
         dbc.Row(html.Br()),
