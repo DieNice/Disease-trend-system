@@ -15,7 +15,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from disease_trend_system.config import (SECRET_KEY, hostname_db, name_db,
                                          password_db, port, username_db)
 from disease_trend_system.endpoints import SymptomsResource
-from disease_trend_system.models import Base, User
+from disease_trend_system.models import Base, User, create_admin_user
 
 
 def create_session():
@@ -79,6 +79,7 @@ app.config.suppress_callback_exceptions = True
 login_manager = LoginManager()
 login_manager.init_app(srv)
 login_manager.login_view = '/login'
+create_admin_user()
 
 
 @ login_manager.user_loader

@@ -1,14 +1,17 @@
 from datetime import datetime
 
+import sqlalchemy
 from flask_login import UserMixin
 from sqlalchemy import (Column, DateTime, Double, Integer, MetaData, String,
-                        event)
+                        and_, event)
 from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy_utils import JSONType
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from disease_trend_system.config import (SECRET_KEY, hostname_db, name_db,
-                                         password_db, port, username_db)
+from disease_trend_system.config import (SECRET_KEY, admin_email, admin_name,
+                                         admin_password, admin_username,
+                                         hostname_db, name_db, password_db,
+                                         port, username_db)
 from disease_trend_system.endpoints import SymptomsResource
 
 Base = declarative_base()
@@ -73,3 +76,24 @@ def hash_user_password(target, value, oldvalue, initiator):
     if value != oldvalue:
         return generate_password_hash(value)
     return value
+
+
+def create_admin_user() -> None:
+    """Создание первого пользователя
+    """
+    engine = sqlalchemy.create_engine(
+        f"mysql+pymysql://{username_db}:{password_db}@{hostname_db}:{port}/{name_db}")
+    metadata = MetaData()
+    metadata.reflect(bind=engine)
+    metadata.create_all(bind=engine, checkfirst=True)
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        flag = session.query(User).filter(
+            and_(User.username == admin_username, User.email == admin_email)).first()
+        print(flag)
+        if flag is None:
+            session.add(User(name=admin_name, username=admin_username,
+                        password=admin_password, email=admin_email, role=1))
+            session.commit()
+        session.close()
+    engine.dispose()

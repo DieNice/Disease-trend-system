@@ -15,6 +15,10 @@ services:
       PASSWORD_DB: dev_password
       NAME_DB: disease-trend
       SECRET_KEY: super_secret_key
+      ADMIN_NAME: admin_name
+      ADMIN_USERNAME: admin_username
+      ADMIN_PASSWORD: admin_password
+      ADMIN_EMAIL: admin_email@mail.ru
     depends_on:
       - db
     networks:
